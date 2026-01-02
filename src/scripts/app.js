@@ -192,7 +192,7 @@ function addRentPayment() {
                             ${[...Array(12)].map((_, i) => `<option value="${i + 1}" ${entry.endMonth === i + 1 ? 'selected' : ''}>${getMonthName(i + 1)}</option>`).join('')}
                         </select>
                         <select id="${id}_endYear" onchange="updateRentPayment('${id}', 'endYear', this.value)" style="padding: 6px 8px; font-size: 13px;">
-                            <option value="2025" ${entry.endYear === 2026 ? 'selected' : ''}>2025</option>
+                            <option value="2025" ${entry.endYear === 2025 ? 'selected' : ''}>2025</option>
                             <option value="2026" ${entry.endYear === 2026 ? 'selected' : ''}>2026</option>
                         </select>
                     </div>
@@ -359,18 +359,11 @@ window.removeRentPayment = removeRentPayment; // Expose
 window.updateRentPayment = updateRentPayment; // Expose
 
 // ============================================
-// REGIME TOGGLE
+// REGIME TOGGLE - REMOVED (Always compare both)
 // ============================================
 function setupRegimeToggle() {
-    const buttons = document.querySelectorAll('.regime-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentRegime = btn.dataset.regime;
-            updateOldRegimeSections();
-        });
-    });
+    // No toggle buttons anymore - always compare both regimes
+    // currentRegime is already set to 'compare' by default
 }
 
 function updateOldRegimeSections() {
@@ -1023,9 +1016,6 @@ function removeDonation(id) {
 // ============================================
 // AUTO-CALCULATE ON INPUT
 // ============================================
-// ============================================
-// AUTO-CALCULATE ON INPUT
-// ============================================
 function setupAutoCalculate() {
     // Debounced auto-calc on any input change (500ms delay to avoid excessive recalc)
     window.debounceCalculate = TaxUtils.debounce(() => {
@@ -1230,8 +1220,8 @@ function collectUserData() {
         transportAllowanceReceived: TaxUtils.getInputValue('transportAllowanceReceived'),
         isDivyang: TaxUtils.getCheckboxValue('isDivyang'),
         
-        // LTA
-        ltaReceived: TaxUtils.getInputValue('ltaReceived'),
+        // LTA - already aggregated earlier from employment periods (line 1117)
+        // ltaActualExpenses is for travel bills, currently not in UI
         ltaActualExpenses: TaxUtils.getInputValue('ltaActualExpenses')
     };
 }
@@ -1381,10 +1371,20 @@ function calculateTax() {
 // ============================================
 // DISPLAY RESULTS
 // ============================================
+// Store last calculation results for modal access
+let lastNewResult = null;
+let lastOldResult = null;
+let lastUserData = null;
+
 function displayResults(newResult, oldResult, userData, warnings = [], errors = []) {
     const panel = document.getElementById('resultsPanel');
     const betterRegime = newResult.finalTax <= oldResult.finalTax ? 'new' : 'old';
     const savings = Math.abs(newResult.finalTax - oldResult.finalTax);
+    
+    // Store for modal access
+    lastNewResult = newResult;
+    lastOldResult = oldResult;
+    lastUserData = userData;
     
     // Build errors HTML (Hard Blocks - Red)
     let errorsHtml = '';
@@ -1412,18 +1412,9 @@ function displayResults(newResult, oldResult, userData, warnings = [], errors = 
         `;
     }
     
-    let html = '';
+    // Always use comparison view
+    const html = generateComparisonReport(newResult, oldResult, betterRegime, savings, userData);
     
-    // Comparison view (default)
-    if (currentRegime === 'compare' || currentRegime === 'both') {
-        html = generateComparisonReport(newResult, oldResult, betterRegime, savings, userData);
-    } else if (currentRegime === 'new') {
-        html = generateSingleRegimeReport(newResult, userData);
-    } else {
-        html = generateSingleRegimeReport(oldResult, userData);
-    }
-    
-    // Prepend warnings to the output
     // Prepend errors and warnings to the output
     panel.innerHTML = errorsHtml + warningsHtml + html;
 }
@@ -1454,6 +1445,9 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
                     ${betterRegime === 'old' ? '<span class="better-tag">✓ Better Choice</span>' : ''}
                 </div>
             </div>
+            <button onclick="openBreakdownModal()" style="width: 100%; margin-top: 16px; padding: 12px; background: var(--color-primary); color: white; border: none; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                🔍 View Full Side-by-Side Breakdown
+            </button>
         </div>
         
         <!-- Income Breakdown -->
@@ -1708,50 +1702,7 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
     `;
 }
 
-function generateSingleRegimeReport(result, userData) {
-    return `
-        <div class="result-card result-card--highlight">
-            <h3 class="result-title">💰 Your Tax - ${result.regimeName}</h3>
-            <div class="result-amount">${TaxUtils.formatCurrency(result.finalTax)}</div>
-            <p style="color: var(--color-text-secondary); margin-top: 8px;">
-                Effective Rate: ${TaxUtils.formatPercent(result.effectiveRate, 2)}
-            </p>
-        </div>
-        
-        <div class="result-card">
-            <h3 class="result-title">📝 Breakdown</h3>
-            <div class="breakdown-item">
-                <span>Gross Income</span>
-                <span>${TaxUtils.formatCurrency(result.grossIncome.total)}</span>
-            </div>
-            <div class="breakdown-item">
-                <span>(-) Deductions</span>
-                <span>${TaxUtils.formatCurrency(result.deductions.total)}</span>
-            </div>
-            <div class="breakdown-item breakdown-item--total">
-                <span>Taxable Income</span>
-                <span>${TaxUtils.formatCurrency(result.taxableIncome)}</span>
-            </div>
-            <div class="breakdown-item">
-                <span>Tax on Slabs</span>
-                <span>${TaxUtils.formatCurrency(result.slabTax.tax)}</span>
-            </div>
-            ${result.rebate.amount > 0 ? `
-            <div class="breakdown-item" style="color: var(--color-success);">
-                <span>(-) 87A Rebate</span>
-                <span>${TaxUtils.formatCurrency(result.rebate.amount)}</span>
-            </div>` : ''}
-            <div class="breakdown-item">
-                <span>(+) Cess (4%)</span>
-                <span>${TaxUtils.formatCurrency(result.cess.amount)}</span>
-            </div>
-            <div class="breakdown-item breakdown-item--total">
-                <span>Final Tax</span>
-                <span>${TaxUtils.formatCurrency(result.finalTax)}</span>
-            </div>
-        </div>
-    `;
-}
+// generateSingleRegimeReport removed - always use comparison mode
 
 function toggleLogSection() {
     const content = document.getElementById('logContent');
@@ -1765,6 +1716,277 @@ function toggleLogSection() {
         toggle.textContent = '▼';
     }
 }
+
+// ============================================
+// BREAKDOWN MODAL FUNCTIONS
+// ============================================
+function openBreakdownModal() {
+    if (!lastNewResult || !lastOldResult) {
+        alert('Please calculate tax first!');
+        return;
+    }
+    
+    const modal = document.getElementById('breakdownModal');
+    const content = document.getElementById('modalBreakdownContent');
+    
+    content.innerHTML = generateDetailedModalComparison(lastNewResult, lastOldResult, lastUserData);
+    modal.classList.add('show');
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBreakdownModal(event) {
+    // Only close if clicking the backdrop or close button
+    if (event && event.target !== event.currentTarget) return;
+    
+    const modal = document.getElementById('breakdownModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeBreakdownModal();
+    }
+});
+
+function generateDetailedModalComparison(newResult, oldResult, userData) {
+    const betterRegime = newResult.finalTax <= oldResult.finalTax ? 'new' : 'old';
+    const savings = Math.abs(newResult.finalTax - oldResult.finalTax);
+    
+    // Helper to determine which value is better (lower = better for tax, higher = better for deductions)
+    const getBetterClass = (newVal, oldVal, higherIsBetter = true) => {
+        if (newVal === oldVal || (newVal === 0 && oldVal === 0)) return '';
+        if (higherIsBetter) {
+            return newVal > oldVal ? 'better-value' : '';
+        } else {
+            return newVal < oldVal ? 'better-value' : '';
+        }
+    };
+    
+    return `
+        <h2 style="text-align: center; margin-bottom: 24px; color: var(--color-primary);">
+            📊 Detailed Tax Comparison - FY 2025-26
+        </h2>
+        
+        ${savings > 0 ? `
+        <div class="savings-banner" style="margin-bottom: 24px;">
+            <div class="label">💰 YOU SAVE BY CHOOSING ${betterRegime.toUpperCase()} REGIME</div>
+            <div class="amount">${TaxUtils.formatCurrency(savings)}</div>
+        </div>
+        ` : ''}
+        
+        <div class="modal-comparison-grid">
+            <!-- NEW REGIME COLUMN -->
+            <div class="modal-regime-column ${betterRegime === 'new' ? 'better' : ''}">
+                <div class="modal-regime-header">
+                    <h3>🆕 New Regime</h3>
+                    <div class="modal-tax-amount">${TaxUtils.formatCurrency(newResult.finalTax)}</div>
+                    ${betterRegime === 'new' ? '<span class="better-tag" style="margin-top: 8px;">✓ Recommended</span>' : ''}
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-primary);">Income</h4>
+                <div class="modal-item">
+                    <span>Gross Salary</span>
+                    <span class="value">${TaxUtils.formatCurrency(userData.grossSalary)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Other Income</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.grossIncome.total - userData.grossSalary)}</span>
+                </div>
+                <div class="modal-item" style="font-weight: 600;">
+                    <span>Gross Total</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.grossIncome.total)}</span>
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-success);">Deductions</h4>
+                <div class="modal-item ${getBetterClass(75000, 50000)}">
+                    <span>Standard Deduction</span>
+                    <span class="value">₹75,000</span>
+                </div>
+                <div class="modal-item">
+                    <span>Employer NPS (80CCD2)</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.deductions.employerNPS || 0)}</span>
+                </div>
+                <div class="modal-item" style="font-weight: 600; border-top: 2px solid var(--color-border);">
+                    <span>Total Deductions</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.deductions.total)}</span>
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-warning);">Tax Calculation</h4>
+                <div class="modal-item ${getBetterClass(newResult.taxableIncome, oldResult.taxableIncome, false)}">
+                    <span>Taxable Income</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.taxableIncome)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Tax on Slabs</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.slabTax.tax)}</span>
+                </div>
+                ${newResult.rebate.amount > 0 ? `
+                <div class="modal-item" style="color: var(--color-success);">
+                    <span>(-) Section 87A Rebate</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.rebate.amount)}</span>
+                </div>
+                ` : ''}
+                ${newResult.surcharge.amount > 0 ? `
+                <div class="modal-item">
+                    <span>(+) Surcharge</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.surcharge.amount)}</span>
+                </div>
+                ` : ''}
+                <div class="modal-item">
+                    <span>(+) Health & Ed. Cess (4%)</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.cess.amount)}</span>
+                </div>
+                ${newResult.capitalGainsTax.total > 0 ? `
+                <div class="modal-item">
+                    <span>(+) Capital Gains Tax</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.capitalGainsTax.total)}</span>
+                </div>
+                ` : ''}
+                <div class="modal-item ${getBetterClass(newResult.finalTax, oldResult.finalTax, false)}" style="font-weight: 700; font-size: 15px; border-top: 2px solid var(--color-primary); padding-top: 12px;">
+                    <span>FINAL TAX</span>
+                    <span class="value">${TaxUtils.formatCurrency(newResult.finalTax)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Effective Rate</span>
+                    <span class="value">${TaxUtils.formatPercent(newResult.effectiveRate, 2)}</span>
+                </div>
+            </div>
+            
+            <!-- OLD REGIME COLUMN -->
+            <div class="modal-regime-column ${betterRegime === 'old' ? 'better' : ''}">
+                <div class="modal-regime-header">
+                    <h3>📜 Old Regime</h3>
+                    <div class="modal-tax-amount">${TaxUtils.formatCurrency(oldResult.finalTax)}</div>
+                    ${betterRegime === 'old' ? '<span class="better-tag" style="margin-top: 8px;">✓ Recommended</span>' : ''}
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-primary);">Income</h4>
+                <div class="modal-item">
+                    <span>Gross Salary</span>
+                    <span class="value">${TaxUtils.formatCurrency(userData.grossSalary)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Other Income</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.grossIncome.total - userData.grossSalary)}</span>
+                </div>
+                <div class="modal-item" style="font-weight: 600;">
+                    <span>Gross Total</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.grossIncome.total)}</span>
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-success);">Deductions & Exemptions</h4>
+                <div class="modal-item">
+                    <span>Standard Deduction</span>
+                    <span class="value">₹50,000</span>
+                </div>
+                ${oldResult.deductions.section80C > 0 ? `
+                <div class="modal-item ${getBetterClass(oldResult.deductions.section80C, 0)}">
+                    <span>Section 80C</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.section80C)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.deductions.section80CCD1B > 0 ? `
+                <div class="modal-item ${getBetterClass(oldResult.deductions.section80CCD1B, 0)}">
+                    <span>80CCD(1B) - Extra NPS</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.section80CCD1B)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.deductions.section80CCD2 > 0 ? `
+                <div class="modal-item">
+                    <span>80CCD(2) - Employer NPS</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.section80CCD2)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.deductions.section80D > 0 ? `
+                <div class="modal-item ${getBetterClass(oldResult.deductions.section80D, 0)}">
+                    <span>80D - Health Insurance</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.section80D)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.deductions.section24b > 0 ? `
+                <div class="modal-item ${getBetterClass(oldResult.deductions.section24b, 0)}">
+                    <span>Section 24(b) - Home Loan</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.section24b)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.exemptions.hraExemption > 0 ? `
+                <div class="modal-item ${getBetterClass(oldResult.exemptions.hraExemption, 0)}">
+                    <span>HRA Exemption</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.exemptions.hraExemption)}</span>
+                </div>
+                ` : ''}
+                <div class="modal-item ${getBetterClass(oldResult.deductions.total + oldResult.exemptions.total, newResult.deductions.total)}" style="font-weight: 600; border-top: 2px solid var(--color-border);">
+                    <span>Total Deductions</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.deductions.total + oldResult.exemptions.total)}</span>
+                </div>
+                
+                <h4 style="margin: 16px 0 8px; font-size: 13px; color: var(--color-warning);">Tax Calculation</h4>
+                <div class="modal-item ${getBetterClass(oldResult.taxableIncome, newResult.taxableIncome, false)}">
+                    <span>Taxable Income</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.taxableIncome)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Tax on Slabs</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.slabTax.tax)}</span>
+                </div>
+                ${oldResult.rebate.amount > 0 ? `
+                <div class="modal-item" style="color: var(--color-success);">
+                    <span>(-) Section 87A Rebate</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.rebate.amount)}</span>
+                </div>
+                ` : ''}
+                ${oldResult.surcharge.amount > 0 ? `
+                <div class="modal-item">
+                    <span>(+) Surcharge</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.surcharge.amount)}</span>
+                </div>
+                ` : ''}
+                <div class="modal-item">
+                    <span>(+) Health & Ed. Cess (4%)</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.cess.amount)}</span>
+                </div>
+                ${oldResult.capitalGainsTax.total > 0 ? `
+                <div class="modal-item">
+                    <span>(+) Capital Gains Tax</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.capitalGainsTax.total)}</span>
+                </div>
+                ` : ''}
+                <div class="modal-item ${getBetterClass(oldResult.finalTax, newResult.finalTax, false)}" style="font-weight: 700; font-size: 15px; border-top: 2px solid var(--color-primary); padding-top: 12px;">
+                    <span>FINAL TAX</span>
+                    <span class="value">${TaxUtils.formatCurrency(oldResult.finalTax)}</span>
+                </div>
+                <div class="modal-item">
+                    <span>Effective Rate</span>
+                    <span class="value">${TaxUtils.formatPercent(oldResult.effectiveRate, 2)}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tax Savings Summary -->
+        <div style="margin-top: 24px; padding: 16px; background: var(--color-success-bg); border: 2px solid var(--color-success); border-radius: 8px; text-align: center;">
+            <h3 style="color: var(--color-success); margin-bottom: 8px;">💚 Key Deductions Saving Tax in Old Regime</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px;">
+                ${oldResult.log
+                    .filter(entry => entry.taxSaved && entry.taxSaved > 0)
+                    .sort((a, b) => b.taxSaved - a.taxSaved)
+                    .slice(0, 5)
+                    .map(entry => `
+                        <span style="background: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid var(--color-success);">
+                            ${entry.item}: <strong>~${TaxUtils.formatCurrency(entry.taxSaved)}</strong>
+                        </span>
+                    `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// Expose modal functions globally
+window.openBreakdownModal = openBreakdownModal;
+window.closeBreakdownModal = closeBreakdownModal;
 
 // ============================================
 // GLOBAL ERROR HANDLER

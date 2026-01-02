@@ -126,34 +126,44 @@ body {
 
 .app-header {
   text-align: center;
-  padding: var(--space-xl) var(--space-md);
-  margin-bottom: var(--space-lg);
+  padding: var(--space-md) var(--space-md);
+  margin-bottom: var(--space-md);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-radius: var(--radius-lg);
   color: white;
 }
 
+.header-content {
+  max-width: 100%;
+}
+
 .app-header h1 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
 }
 
 .app-header .subtitle {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   opacity: 0.9;
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
+  line-height: 1.4;
 }
 
 .fy-badge {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.2);
-  padding: var(--space-xs) var(--space-md);
+  background: rgba(255, 255, 255, 0.25);
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  margin-top: var(--space-md);
+  vertical-align: middle;
 }
 
 /* Main Grid - 2 columns */
@@ -170,47 +180,7 @@ body {
   }
 }
 
-/* ========================
-   REGIME TOGGLE
-   ======================== */
-.regime-toggle {
-  display: flex;
-  gap: var(--space-sm);
-  background: var(--color-bg-secondary);
-  padding: var(--space-sm);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  margin-bottom: var(--space-lg);
-}
-
-.regime-btn {
-  flex: 1;
-  padding: var(--space-md);
-  border: 2px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  color: var(--color-text-secondary);
-}
-
-.regime-btn:hover {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
-}
-
-.regime-btn.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
-}
-
-.regime-btn.compare-btn.active {
-  background: var(--color-success);
-  border-color: var(--color-success);
-}
+/* Regime toggle removed - always compare both regimes */
 
 /* ========================
    SECTION CARDS
@@ -551,7 +521,7 @@ input[type="checkbox"] {
 .calculate-btn {
   width: 100%;
   padding: var(--space-md) var(--space-lg);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); /* Soothing Indigo */
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -560,11 +530,13 @@ input[type="checkbox"] {
   cursor: pointer;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-xl);
 }
 
 .calculate-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
 }
 
 .calculate-btn:active {
@@ -782,9 +754,6 @@ input[type="checkbox"] {
     font-size: var(--font-size-xl);
   }
 
-  .regime-toggle {
-    flex-direction: column;
-  }
 
   .dynamic-entry {
     grid-template-columns: 1fr auto;
@@ -801,7 +770,7 @@ input[type="checkbox"] {
 .upload-area {
   border: 2px dashed var(--color-border-strong);
   border-radius: var(--radius-md);
-  padding: var(--space-xl);
+  padding: var(--space-md);
   text-align: center;
   transition: all var(--transition-normal);
   background: var(--color-bg-tertiary);
@@ -907,7 +876,8 @@ input[type="checkbox"] {
   .calculate-section,
   .add-entry-btn,
   .entry-remove-btn,
-  .section--upload {
+  .section--upload,
+  .app-footer {
     display: none;
   }
 
@@ -918,4 +888,178 @@ input[type="checkbox"] {
   .section {
     break-inside: avoid;
   }
+}
+
+/* ========================
+   STICKY FOOTER
+   ======================== */
+.app-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.app-footer p {
+  margin: 0;
+}
+
+.app-footer a {
+  color: white;
+  text-decoration: underline;
+  font-weight: var(--font-weight-semibold);
+  transition: opacity var(--transition-fast);
+}
+
+.app-footer a:hover {
+  opacity: 0.8;
+}
+
+/* Add padding to body to prevent footer overlap */
+body {
+  padding-bottom: 60px;
+}
+
+/* ========================
+   BREAKDOWN MODAL
+   ======================== */
+.breakdown-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.breakdown-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  max-width: 1100px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-xl);
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+/* Modal Comparison Grid */
+.modal-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .modal-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-regime-column {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  border: 2px solid var(--color-border);
+}
+
+.modal-regime-column.better {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.modal-regime-header {
+  text-align: center;
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--space-md);
+}
+
+.modal-regime-header h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xs);
+}
+
+.modal-tax-amount {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.modal-regime-column.better .modal-tax-amount {
+  color: var(--color-success);
+}
+
+/* Comparison Row with Green Highlighting */
+.modal-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.modal-item.better-value {
+  background: rgba(5, 150, 105, 0.1);
+  margin: 0 calc(-1 * var(--space-md));
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  border-radius: var(--radius-sm);
+}
+
+.modal-item.better-value .value {
+  color: var(--color-success);
+  font-weight: var(--font-weight-semibold);
 }

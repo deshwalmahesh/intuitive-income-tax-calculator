@@ -20,19 +20,13 @@
              HEADER
              ======================== -->
       <header class="app-header">
-        <h1>🎯 Complete Income Tax Calculator</h1>
-        <p class="subtitle">Find EVERY tax-saving deduction. Compare Old vs New Regime. See exactly where your money goes.</p>
-        <span class="fy-badge">FY 2025-26 (AY 2026-27)</span>
+        <div class="header-content">
+          <h1>💰 Tax Savings Finder <span class="fy-badge">FY 25-26</span></h1>
+          <p class="subtitle">Discover hidden deductions most people miss • Detailed compararison of Old vs New Regime • See what exactly saves you money and how much.</p>
+        </div>
       </header>
 
-      <!-- ========================
-             REGIME TOGGLE
-             ======================== -->
-      <div class="regime-toggle">
-        <button class="regime-btn" data-regime="new">New Regime</button>
-        <button class="regime-btn" data-regime="old">Old Regime</button>
-        <button class="regime-btn compare-btn active" data-regime="compare">Compare Both ⚖️</button>
-      </div>
+      <!-- Regime comparison is always enabled - no toggle needed -->
 
       <div class="main-layout">
         <!-- ========================
@@ -61,10 +55,10 @@
                 </p>
               </div>
 
-              <p class="help-text" style="margin-bottom: 16px; background: var(--color-info-bg); padding: 12px; border-radius: 6px">
+              <p class="help-text" style="margin-bottom: 12px; background: var(--color-info-bg); padding: 10px; border-radius: 6px; line-height: 1.5;">
                 <span class="info-icon">💡</span>
-                <strong>Quick Fill:</strong>
-                Upload your Form-16, salary slips, or tax statements (PDF or images). AI will extract all details automatically. One document per job.
+                <strong>Optional:</strong> Auto-fill your details by uploading Form-16, salary slips, or tax statements. 
+                Upload one document per job—AI will extract the values for you to review and edit.
               </p>
 
               <div id="documentUploadArea" class="upload-area">
@@ -218,7 +212,7 @@
           <div class="section section--savings old-regime-only" id="section-80c">
             <div class="section-header" onclick="toggleSection('80c')">
               <span class="section-icon">📈</span>
-              <h2 class="section-title">80C Investments (₹1.5L Limit)</h2>
+              <h2 class="section-title">Tax-Saving Investments (Section 80C - ₹1.5L Limit)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-80c">▼</button>
             </div>
@@ -299,7 +293,7 @@
           <div class="section section--savings old-regime-only" id="section-80d">
             <div class="section-header" onclick="toggleSection('80d')">
               <span class="section-icon">🏥</span>
-              <h2 class="section-title">Health Insurance (80D)</h2>
+              <h2 class="section-title">Health Insurance Premiums (Section 80D)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-80d">▼</button>
             </div>
@@ -347,7 +341,7 @@
           <div class="section section--savings old-regime-only" id="section-homeloan">
             <div class="section-header" onclick="toggleSection('homeloan')">
               <span class="section-icon">🏡</span>
-              <h2 class="section-title">Home Loan</h2>
+              <h2 class="section-title">Home Loan Deductions (Section 24b)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-homeloan">▼</button>
             </div>
@@ -389,7 +383,7 @@
           <div class="section section--savings old-regime-only" id="section-legacy-home">
             <div class="section-header" onclick="toggleSection('legacy-home')">
               <span class="section-icon">🏠</span>
-              <h2 class="section-title">Legacy Home Loan (80EE / 80EEA)</h2>
+              <h2 class="section-title">First-Time Home Buyer Benefits (Section 80EE/80EEA)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-legacy-home">▼</button>
             </div>
@@ -422,7 +416,7 @@
           <div class="section section--savings old-regime-only" id="section-80e">
             <div class="section-header" onclick="toggleSection('80e')">
               <span class="section-icon">🎓</span>
-              <h2 class="section-title">Education Loan Interest (80E)</h2>
+              <h2 class="section-title">Education Loan Interest (Section 80E)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-80e">▼</button>
             </div>
@@ -443,7 +437,7 @@
           <div class="section section--savings old-regime-only" id="section-80eeb">
             <div class="section-header" onclick="toggleSection('80eeb')">
               <span class="section-icon">⚡</span>
-              <h2 class="section-title">EV Loan Interest (80EEB)</h2>
+              <h2 class="section-title">Electric Vehicle Loan Interest (Section 80EEB)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-80eeb">▼</button>
             </div>
@@ -464,7 +458,7 @@
           <div class="section section--savings" id="section-donations">
             <div class="section-header" onclick="toggleSection('donations')">
               <span class="section-icon">🎁</span>
-              <h2 class="section-title">Donations</h2>
+              <h2 class="section-title">Charitable & Political Donations (Section 80G/80GGC)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-donations">▼</button>
             </div>
@@ -492,7 +486,7 @@
           <div class="section section--other" id="section-capitalgains">
             <div class="section-header" onclick="toggleSection('capitalgains')">
               <span class="section-icon">📊</span>
-              <h2 class="section-title">Capital Gains (Stocks, Property, Crypto)</h2>
+              <h2 class="section-title">Investment Profits - Capital Gains (Stocks, Property, Crypto)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-capitalgains">▼</button>
             </div>
@@ -603,7 +597,7 @@
           <div class="section section--other" id="section-otherincome">
             <div class="section-header" onclick="toggleSection('otherincome')">
               <span class="section-icon">💰</span>
-              <h2 class="section-title">Other Income Sources</h2>
+              <h2 class="section-title">Additional Income Sources (Interest, Rent, Gifts)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-otherincome">▼</button>
             </div>
@@ -678,7 +672,7 @@
           <div class="section section--other old-regime-only" id="section-disabilities">
             <div class="section-header" onclick="toggleSection('disabilities')">
               <span class="section-icon">♿</span>
-              <h2 class="section-title">Disability & Medical (80U/80DD/80DDB)</h2>
+              <h2 class="section-title">Disability & Medical Expense Deductions (Section 80U/80DD/80DDB)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-disabilities">▼</button>
             </div>
@@ -726,7 +720,7 @@
           <div class="section section--savings" id="section-agniveer">
             <div class="section-header" onclick="toggleSection('agniveer')">
               <span class="section-icon">🎖️</span>
-              <h2 class="section-title">Agniveer Corpus (80CCH)</h2>
+              <h2 class="section-title">Agniveer Corpus Fund (Section 80CCH)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-agniveer">▼</button>
             </div>
@@ -746,7 +740,7 @@
           <div class="section section--savings" id="section-retirement">
             <div class="section-header" onclick="toggleSection('retirement')">
               <span class="section-icon">🎖️</span>
-              <h2 class="section-title">Retirement Benefits (Gratuity, Leave Encashment)</h2>
+              <h2 class="section-title">Retirement Benefits - Gratuity, Leave Encashment (Section 10)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-retirement">▼</button>
             </div>
@@ -822,7 +816,7 @@
           <div class="section section--savings old-regime-only" id="section-80gga">
             <div class="section-header" onclick="toggleSection('80gga')">
               <span class="section-icon">🔬</span>
-              <h2 class="section-title">Scientific Research Donations (80GGA)</h2>
+              <h2 class="section-title">Scientific Research Contributions (Section 80GGA)</h2>
               <span class="section-badge section-badge--old-only">Old Regime</span>
               <button class="section-toggle collapsed" id="toggle-80gga">▼</button>
             </div>
@@ -864,7 +858,7 @@
           <div class="section section--other" id="section-reliefs">
             <div class="section-header" onclick="toggleSection('reliefs')">
               <span class="section-icon">🛡️</span>
-              <h2 class="section-title">Tax Reliefs (Sec 89)</h2>
+              <h2 class="section-title">Tax Relief for Arrears/Advance Salary (Section 89)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-reliefs">▼</button>
             </div>
@@ -902,6 +896,27 @@
         </div>
       </div>
     </div>
+
+    <!-- ========================
+         BREAKDOWN MODAL
+         ======================== -->
+    <div id="breakdownModal" class="breakdown-modal" onclick="closeBreakdownModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeBreakdownModal()">&times;</button>
+        <div id="modalBreakdownContent"></div>
+      </div>
+    </div>
+
+    <!-- ========================
+         STICKY FOOTER
+         ======================== -->
+    <footer class="app-footer">
+      <p>
+        Built with ❤️ by 
+        <a href="https://github.com/deshwalmahesh" target="_blank" rel="noopener">Mahesh Deshwal</a> | 
+        <a href="https://www.linkedin.com/in/deshwalmahesh/" target="_blank" rel="noopener">LinkedIn</a>
+      </p>
+    </footer>
 
     <!-- ========================
          SCRIPTS
