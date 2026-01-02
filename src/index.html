@@ -201,6 +201,7 @@
                     <div id="rentPaymentsContainer" style="width: 100%;">
                         <!-- Dynamic Rent Payments -->
                     </div>
+                    <button class="add-entry-btn" onclick="addRentPayment()" style="margin-top: 8px;">➕ Add Rent Period</button>
                 </div>
               </div>
 
@@ -877,7 +878,12 @@
           
           <!-- CALCULATE BUTTON -->
           <div class="calculate-section">
-            <button class="calculate-btn" onclick="calculateTax()">💡 Calculate & Compare Tax</button>
+            <button class="calculate-btn" id="calculateBtn" onclick="calculateTax()" disabled title="Add salary details above to enable calculation">
+              💡 Calculate & Compare Tax
+            </button>
+            <p id="calculateBtnHint" class="help-text" style="text-align: center; margin-top: 8px; color: var(--color-warning);">
+              ⚠️ Add at least one employment period with salary to enable
+            </p>
           </div>
         </div>
 

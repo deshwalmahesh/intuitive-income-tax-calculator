@@ -372,7 +372,7 @@ const TaxUtils = {
      * @param {number} taxSaved - Estimated tax saved (optional)
      * @returns {Object} Log entry object
      */
-    createLogEntry(section, item, amount, limit, explanation, taxSaved = null) {
+    createLogEntry(section, item, amount, limit, explanation, taxSaved = null, deductionType = 'neutral') {
         return {
             section,
             item,
@@ -380,6 +380,7 @@ const TaxUtils = {
             limit,
             explanation,
             taxSaved,
+            deductionType,  // 'investment' (green), 'expense' (orange), 'exemption' (blue), 'neutral'
             timestamp: Date.now()
         };
     },

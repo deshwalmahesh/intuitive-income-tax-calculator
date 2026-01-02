@@ -230,7 +230,8 @@ class NewRegimeCalculator {
                 breakdown.standardDeduction,
                 75000,
                 'Automatic ₹75,000 deduction for salaried individuals under New Regime (Budget 2025).',
-                this.estimateTaxSaved(breakdown.standardDeduction, 0.30)
+                this.estimateTaxSaved(breakdown.standardDeduction, 0.30),
+                'exemption'  // Blue - automatic benefit
             );
         } else {
             breakdown.standardDeduction = 0;
@@ -272,7 +273,8 @@ class NewRegimeCalculator {
                 breakdown.employerNPS,
                 maxEmployerNPS,
                 `Employer's NPS contribution up to 14% of Basic+DA (${TaxUtils.formatCurrency(basicDA)}). This is the ONLY major deduction in New Regime!`,
-                this.estimateTaxSaved(breakdown.employerNPS, 0.30)
+                this.estimateTaxSaved(breakdown.employerNPS, 0.30),
+                'investment'  // Green - builds retirement corpus
             );
         } else {
             breakdown.employerNPS = 0;
@@ -683,9 +685,10 @@ class NewRegimeCalculator {
 
     /**
      * Add entry to calculation log
+     * @param {string} deductionType - 'investment', 'expense', 'exemption', or 'neutral'
      */
-    addLog(section, item, amount, limit, explanation, taxSaved = null) {
-        this.log.push(TaxUtils.createLogEntry(section, item, amount, limit, explanation, taxSaved));
+    addLog(section, item, amount, limit, explanation, taxSaved = null, deductionType = 'neutral') {
+        this.log.push(TaxUtils.createLogEntry(section, item, amount, limit, explanation, taxSaved, deductionType));
     }
 
     /**

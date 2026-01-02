@@ -176,10 +176,10 @@ function addRentPayment() {
                 <div>
                     <label style="font-size: 11px; display: block; margin-bottom: 4px; font-weight: 500;">Start</label>
                     <div style="display: grid; grid-template-columns: 1fr 80px; gap: 4px;">
-                        <select id="${id}_startMonth" onchange="updateRentPayment('${id}', 'startMonth', this.value)" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="${id}_startMonth" oninput="updateRentPayment('${id}', 'startMonth', this.value)" style="padding: 6px 8px; font-size: 13px;">
                             ${[...Array(12)].map((_, i) => `<option value="${i + 1}" ${entry.startMonth === i + 1 ? 'selected' : ''}>${getMonthName(i + 1)}</option>`).join('')}
                         </select>
-                        <select id="${id}_startYear" onchange="updateRentPayment('${id}', 'startYear', this.value)" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="${id}_startYear" oninput="updateRentPayment('${id}', 'startYear', this.value)" style="padding: 6px 8px; font-size: 13px;">
                             <option value="2025">2025</option>
                             <option value="2026">2026</option>
                         </select>
@@ -188,10 +188,10 @@ function addRentPayment() {
                 <div>
                     <label style="font-size: 11px; display: block; margin-bottom: 4px; font-weight: 500;">End</label>
                     <div style="display: grid; grid-template-columns: 1fr 80px; gap: 4px;">
-                        <select id="${id}_endMonth" onchange="updateRentPayment('${id}', 'endMonth', this.value)" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="${id}_endMonth" oninput="updateRentPayment('${id}', 'endMonth', this.value)" style="padding: 6px 8px; font-size: 13px;">
                             ${[...Array(12)].map((_, i) => `<option value="${i + 1}" ${entry.endMonth === i + 1 ? 'selected' : ''}>${getMonthName(i + 1)}</option>`).join('')}
                         </select>
-                        <select id="${id}_endYear" onchange="updateRentPayment('${id}', 'endYear', this.value)" style="padding: 6px 8px; font-size: 13px;">
+                        <select id="${id}_endYear" oninput="updateRentPayment('${id}', 'endYear', this.value)" style="padding: 6px 8px; font-size: 13px;">
                             <option value="2025" ${entry.endYear === 2025 ? 'selected' : ''}>2025</option>
                             <option value="2026" ${entry.endYear === 2026 ? 'selected' : ''}>2026</option>
                         </select>
@@ -201,13 +201,13 @@ function addRentPayment() {
             
             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end;">
                 <div>
-                    <label style="font-size: 11px; display: block; margin-bottom: 4px; font-weight: 500;">Monthly Rent (₹)</label>
+                    <label style="font-size: 11px; display: block; margin-bottom: 4px; font-weight: 500;">Total Rent Paid in Period (₹)</label>
                     <input type="number" id="${id}_amount" value="0" min="0" placeholder="₹"
-                           onchange="updateRentPayment('${id}', 'amount', this.value)" style="width: 100%; padding: 6px 8px;">
+                           oninput="updateRentPayment('${id}', 'amount', this.value)" style="width: 100%; padding: 6px 8px;">
                 </div>
                 <div>
                     <label style="font-size: 11px; display: block; margin-bottom: 4px; font-weight: 500;">City Type</label>
-                    <select id="${id}_isMetro" onchange="updateRentPayment('${id}', 'isMetro', this.value)" style="width: 100%; padding: 6px 8px; font-size: 13px;">
+                    <select id="${id}_isMetro" oninput="updateRentPayment('${id}', 'isMetro', this.value)" style="width: 100%; padding: 6px 8px; font-size: 13px;">
                         <option value="false">Non-Metro</option>
                         <option value="true">Metro (Delhi/Mum/Kol/Chn)</option>
                     </select>
@@ -222,7 +222,10 @@ function addRentPayment() {
 
 function updateRentPayment(id, field, value) {
     const entry = rentPayments.find(r => r.id === id);
-    if (!entry) return;
+    if (!entry) {
+        console.warn(`[HRA] updateRentPayment: Entry ${id} not found`);
+        return;
+    }
     
     if (field === 'amount') {
         entry.amount = parseFloat(value) || 0;
@@ -231,9 +234,11 @@ function updateRentPayment(id, field, value) {
     } else {
         entry[field] = parseInt(value);
     }
+    console.log(`[HRA] Updated ${id}.${field} = ${entry[field]}`);
 }
 
 function removeRentPayment(id) {
+    console.log(`[HRA] Removing rent payment: ${id}`);
     rentPayments = rentPayments.filter(r => r.id !== id);
     const element = document.getElementById(id);
     if (element) element.remove();
@@ -241,6 +246,7 @@ function removeRentPayment(id) {
     if (rentPayments.length === 0) {
         addRentPayment();
     }
+    console.log(`[HRA] Remaining rent payments: ${rentPayments.length}`);
 }
 
 // Expose rent functions
@@ -609,7 +615,7 @@ function addEmploymentPeriod() {
         <div class="employment-period-card" id="${id}" style="border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; margin-bottom: 16px; background: var(--color-bg-secondary);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <input type="text" id="${id}_name" value="${entry.name}" 
-                       onchange="updateEmploymentPeriod('${id}', 'name', this.value)"
+                       oninput="updateEmploymentPeriod('${id}', 'name', this.value)"
                        style="font-weight: 600; font-size: 15px; border: none; background: transparent; color: var(--color-primary); width: 200px;">
                 <button class="entry-remove-btn" onclick="removeEmploymentPeriod('${id}')" title="Remove Period">✕</button>
             </div>
@@ -619,10 +625,10 @@ function addEmploymentPeriod() {
                 <div class="form-group" style="margin-bottom: 0;">
                     <label style="font-size: 12px;">Start Month/Year</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="${id}_startMonth" onchange="updateEmploymentPeriod('${id}', 'startMonth', this.value)" style="flex: 1;">
+                        <select id="${id}_startMonth" oninput="updateEmploymentPeriod('${id}', 'startMonth', this.value)" style="flex: 1;">
                             ${[...Array(12)].map((_, i) => `<option value="${i + 1}" ${entry.startMonth === i + 1 ? 'selected' : ''}>${getMonthName(i + 1)}</option>`).join('')}
                         </select>
-                        <select id="${id}_startYear" onchange="updateEmploymentPeriod('${id}', 'startYear', this.value)" style="width: 80px;">
+                        <select id="${id}_startYear" oninput="updateEmploymentPeriod('${id}', 'startYear', this.value)" style="width: 80px;">
                             <option value="2025" ${entry.startYear === 2025 ? 'selected' : ''}>2025</option>
                             <option value="2026" ${entry.startYear === 2026 ? 'selected' : ''}>2026</option>
                         </select>
@@ -631,10 +637,10 @@ function addEmploymentPeriod() {
                 <div class="form-group" style="margin-bottom: 0;">
                     <label style="font-size: 12px;">End Month/Year</label>
                     <div style="display: flex; gap: 8px;">
-                        <select id="${id}_endMonth" onchange="updateEmploymentPeriod('${id}', 'endMonth', this.value)" style="flex: 1;">
+                        <select id="${id}_endMonth" oninput="updateEmploymentPeriod('${id}', 'endMonth', this.value)" style="flex: 1;">
                             ${[...Array(12)].map((_, i) => `<option value="${i + 1}" ${entry.endMonth === i + 1 ? 'selected' : ''}>${getMonthName(i + 1)}</option>`).join('')}
                         </select>
-                        <select id="${id}_endYear" onchange="updateEmploymentPeriod('${id}', 'endYear', this.value)" style="width: 80px;">
+                        <select id="${id}_endYear" oninput="updateEmploymentPeriod('${id}', 'endYear', this.value)" style="width: 80px;">
                             <option value="2025" ${entry.endYear === 2025 ? 'selected' : ''}>2025</option>
                             <option value="2026" ${entry.endYear === 2026 ? 'selected' : ''}>2026</option>
                         </select>
@@ -653,12 +659,12 @@ function addEmploymentPeriod() {
                 <div class="form-group" style="margin-bottom: 8px;">
                     <label style="font-size: 12px;">Gross Salary for this Period (₹)</label>
                     <input type="number" id="${id}_grossSalary" placeholder="e.g., 600000" value="0" min="0"
-                           onchange="updateEmploymentPeriod('${id}', 'grossSalary', this.value)">
+                           oninput="updateEmploymentPeriod('${id}', 'grossSalary', this.value)">
                 </div>
                 <div class="form-group" style="margin-bottom: 8px;">
                     <label style="font-size: 12px;">Basic + DA for this Period (₹)</label>
                     <input type="number" id="${id}_basicPlusDA" placeholder="Leave 0 to auto-compute (50%)" value="0" min="0"
-                           onchange="updateEmploymentPeriod('${id}', 'basicPlusDA', this.value)">
+                           oninput="updateEmploymentPeriod('${id}', 'basicPlusDA', this.value)">
                     <p class="help-text" style="font-size: 11px; margin-top: 4px;">
                         <span class="info-icon" style="width: 14px; height: 14px; font-size: 10px;">i</span>
                         Check your salary slip. If left blank, we'll use 50% of gross. Usually 40-50%.
@@ -671,12 +677,12 @@ function addEmploymentPeriod() {
                 <div class="form-group" style="margin-bottom: 8px;">
                     <label style="font-size: 12px;">HRA Received (₹) - This Period</label>
                     <input type="number" id="${id}_hraReceived" placeholder="e.g., 120000" value="0" min="0"
-                           onchange="updateEmploymentPeriod('${id}', 'hraReceived', this.value)">
+                           oninput="updateEmploymentPeriod('${id}', 'hraReceived', this.value)">
                 </div>
                 <div class="form-group" style="margin-bottom: 8px;">
                     <label style="font-size: 12px;">Your EPF Contribution (₹) - This Period</label>
                     <input type="number" id="${id}_epfContribution" placeholder="Usually 12% of Basic" value="0" min="0"
-                           onchange="updateEmploymentPeriod('${id}', 'epfContribution', this.value)">
+                           oninput="updateEmploymentPeriod('${id}', 'epfContribution', this.value)">
                 </div>
             </div>
             
@@ -685,7 +691,7 @@ function addEmploymentPeriod() {
                 <div class="form-group" style="margin-bottom: 0;">
                     <label style="font-size: 12px;">Employer NPS Contribution (₹) - This Period</label>
                     <input type="number" id="${id}_employerNPSContribution" placeholder="80CCD(2)" value="0" min="0"
-                           onchange="updateEmploymentPeriod('${id}', 'employerNPSContribution', this.value)">
+                           oninput="updateEmploymentPeriod('${id}', 'employerNPSContribution', this.value)">
                 </div>
             </div>
             
@@ -700,13 +706,13 @@ function addEmploymentPeriod() {
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label style="font-size: 12px;">Bonus / Variable Pay (₹)</label>
                             <input type="number" id="${id}_bonus" placeholder="Fully taxable" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'bonus', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'bonus', this.value)">
                             <p class="help-text" style="font-size: 10px; margin-top: 2px;">Performance bonus, incentives. Taxable in both regimes.</p>
                         </div>
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label style="font-size: 12px;">Special Allowance (₹)</label>
                             <input type="number" id="${id}_specialAllowance" placeholder="Fully taxable" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'specialAllowance', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'specialAllowance', this.value)">
                             <p class="help-text" style="font-size: 10px; margin-top: 2px;">Catch-all allowance. Fully taxable.</p>
                         </div>
                     </div>
@@ -716,7 +722,7 @@ function addEmploymentPeriod() {
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label style="font-size: 12px;">LTA Received (₹) <span style="color: var(--color-warning); font-size: 10px;">Old Regime</span></label>
                             <input type="number" id="${id}_ltaReceived" placeholder="Leave Travel Allowance" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'ltaReceived', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'ltaReceived', this.value)">
                             <p class="help-text" style="font-size: 10px; margin-top: 2px;">Sec 10(5). Exempt with travel bills. Old Regime only.</p>
                         </div>
                     </div>
@@ -726,24 +732,24 @@ function addEmploymentPeriod() {
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label style="font-size: 12px;">Telephone/Internet Reimb. (₹) <span style="color: var(--color-success); font-size: 10px;">Both</span></label>
                             <input type="number" id="${id}_telephoneReimb" placeholder="With bills" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'telephoneReimb', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'telephoneReimb', this.value)">
                         </div>
                         <div class="form-group" style="margin-bottom: 8px;">
                             <label style="font-size: 12px;">Books/Periodicals Reimb. (₹) <span style="color: var(--color-success); font-size: 10px;">Both</span></label>
                             <input type="number" id="${id}_booksReimb" placeholder="With bills" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'booksReimb', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'booksReimb', this.value)">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 12px;">Conveyance / Fuel Reimb. (₹) <span style="color: var(--color-success); font-size: 10px;">Exempt (Bills)</span></label>
                             <input type="number" id="${id}_conveyanceAllowance" placeholder="With bills" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'conveyanceAllowance', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'conveyanceAllowance', this.value)">
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label style="font-size: 12px;">Driver Salary / Allowance (₹) <span style="color: var(--color-warning); font-size: 10px;">Taxable</span></label>
                             <input type="number" id="${id}_driverAllowance" placeholder="Taxable" value="0" min="0"
-                                   onchange="updateEmploymentPeriod('${id}', 'driverAllowance', this.value)">
+                                   oninput="updateEmploymentPeriod('${id}', 'driverAllowance', this.value)">
                         </div>
                     </div>
                 </div>
@@ -825,6 +831,8 @@ function updateEmploymentSummary() {
     const summaryDiv = document.getElementById('totalSalaryInfo');
     const totalSalarySpan = document.getElementById('totalSalaryAmount');
     const totalMonthsSpan = document.getElementById('totalMonthsWorked');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const calculateBtnHint = document.getElementById('calculateBtnHint');
     
     if (!summaryDiv) return;
     
@@ -836,8 +844,26 @@ function updateEmploymentSummary() {
         totalSalarySpan.textContent = TaxUtils.formatCurrency(totalGross);
         totalMonthsSpan.textContent = Math.min(totalMonths, 12);
         totalMonthsSpan.style.color = totalMonths > 12 ? 'var(--color-warning)' : 'inherit';
+        
+        // Enable calculate button when salary is entered
+        if (calculateBtn) {
+            calculateBtn.disabled = false;
+            calculateBtn.title = 'Calculate tax for both Old and New regimes';
+        }
+        if (calculateBtnHint) {
+            calculateBtnHint.style.display = 'none';
+        }
     } else {
         summaryDiv.style.display = 'none';
+        
+        // Disable calculate button when no salary
+        if (calculateBtn) {
+            calculateBtn.disabled = true;
+            calculateBtn.title = 'Add salary details above to enable calculation';
+        }
+        if (calculateBtnHint) {
+            calculateBtnHint.style.display = 'block';
+        }
     }
 }
 
@@ -879,13 +905,13 @@ function addInvestment80C() {
     const html = `
         <div class="dynamic-entry" id="${id}">
             <div class="form-group" style="margin-bottom: 0;">
-                <select id="${id}_type" onchange="updateInvestment80C('${id}', 'type', this.value)">
+                <select id="${id}_type" oninput="updateInvestment80C('${id}', 'type', this.value)">
                     ${investment80CTypes.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <input type="number" id="${id}_amount" placeholder="Amount ₹" value="0" min="0" 
-                       onchange="updateInvestment80C('${id}', 'amount', this.value)">
+                       oninput="updateInvestment80C('${id}', 'amount', this.value)">
             </div>
             <button class="entry-remove-btn" onclick="removeInvestment80C('${id}')" title="Remove">✕</button>
         </div>
@@ -973,16 +999,16 @@ function addDonation() {
     const html = `
         <div class="dynamic-entry" id="${id}" style="grid-template-columns: 1fr 100px 100px auto;">
             <div class="form-group" style="margin-bottom: 0;">
-                <select id="${id}_category" onchange="updateDonation('${id}', 'category', this.value)">
+                <select id="${id}_category" oninput="updateDonation('${id}', 'category', this.value)">
                     ${donationTypes.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
                 <input type="number" id="${id}_amount" placeholder="₹" value="0" min="0" 
-                       onchange="updateDonation('${id}', 'amount', this.value)">
+                       oninput="updateDonation('${id}', 'amount', this.value)">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-                <select id="${id}_mode" onchange="updateDonation('${id}', 'paymentMode', this.value)">
+                <select id="${id}_mode" oninput="updateDonation('${id}', 'paymentMode', this.value)">
                     <option value="online">Online</option>
                     <option value="cheque">Cheque</option>
                     <option value="cash">Cash</option>
@@ -1147,10 +1173,10 @@ function collectUserData() {
         section80EEBInterest: TaxUtils.getInputValue('section80EEBInterest'),
         
         // Donations (from dynamic list)
+        // Passed RAW to calculator for internal categorization (80G vs 80GGC vs 80GGA)
         donations: donations.filter(d => d.amount > 0),
-        politicalPartyDonation: donations
-            .filter(d => d.category === 'politicalParty' && d.amount > 0 && d.paymentMode !== 'cash')
-            .reduce((sum, d) => sum + d.amount, 0),
+        
+        // REMOVED: politicalPartyDonation (now calculated internally from donations list)
         
         // Capital Gains
         stcgEquity: TaxUtils.getInputValue('stcgEquity'),
@@ -1505,6 +1531,12 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
                         <td style="text-align: right; padding: 8px;">₹75,000</td>
                         <td style="text-align: right; padding: 8px;">₹50,000</td>
                     </tr>
+                    ${oldResult.exemptions.hraExemption > 0 ? `
+                    <tr style="background: #fef3c7;">
+                        <td style="padding: 8px;">🏠 HRA Exemption (Sec 10(13A))</td>
+                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
+                        <td style="text-align: right; padding: 8px; color: #b45309; font-weight: 600;">${TaxUtils.formatCurrency(oldResult.exemptions.hraExemption)}</td>
+                    </tr>` : ''}
                     ${oldResult.deductions.section80C > 0 ? `
                     <tr>
                         <td style="padding: 8px;">Section 80C</td>
@@ -1633,73 +1665,179 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
             </table>
         </div>
         
-        <!-- WHAT SAVED YOU MONEY - Key tax-saving breakdown -->
-        <div class="result-card" style="background: linear-gradient(to bottom right, #f0fff4, #e8f7f7); border: 2px solid var(--color-success);">
-            <h3 class="result-title" style="color: var(--color-success);">💚 What Saved You Money (Old Regime)</h3>
-            <p style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px;">
-                These deductions and exemptions reduced your taxable income, saving you tax at your marginal rate (~30%).
-            </p>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                ${oldResult.log
-                    .filter(entry => entry.taxSaved && entry.taxSaved > 0)
-                    .sort((a, b) => b.taxSaved - a.taxSaved)
-                    .slice(0, 8)
-                    .map(entry => `
-                        <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid var(--color-success);">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="color: var(--color-text-primary);">${entry.item}</strong>
-                                <span style="color: var(--color-success); font-weight: 600;">~${TaxUtils.formatCurrency(entry.taxSaved)} saved</span>
-                            </div>
-                            <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 6px;">
-                                <strong>Amount claimed:</strong> ${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}
-                            </div>
-                            <div style="font-size: 12px; color: var(--color-primary); margin-top: 4px;">
-                                <strong>Why it saves tax:</strong> ${entry.explanation.split('.')[0]}.
-                            </div>
-                        </div>
-                    `).join('')}
-                ${oldResult.log.filter(entry => entry.taxSaved && entry.taxSaved > 0).length === 0 ? `
-                    <p style="text-align: center; color: var(--color-text-secondary); padding: 20px;">
-                        No deductions claimed. Add investments (80C, NPS) or health insurance (80D) to save tax!
-                    </p>
-                ` : ''}
+        <!-- WHAT SAVED YOU MONEY - Dynamic based on better regime -->
+        <div class="result-card" id="savingsCard" style="background: linear-gradient(to bottom right, #f0fff4, #e8f7f7); border: 2px solid var(--color-success);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 class="result-title" style="color: var(--color-success); margin: 0;">
+                    💚 What Saved You Money (<span id="displayedRegimeName">${betterRegime === 'new' ? 'New' : 'Old'}</span> Regime)
+                </h3>
+                <button id="toggleRegimeBtn" onclick="toggleDisplayedRegime()" style="
+                    background: linear-gradient(135deg, #dc2626, #b91c1c);
+                    color: white;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                ">
+                    🔄 View ${betterRegime === 'new' ? 'Old' : 'New'} Regime
+                </button>
             </div>
+            <p style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px;">
+                ${betterRegime === 'new' 
+                    ? 'The New Regime has lower tax for you. It offers a higher standard deduction (₹75K) but no other deductions.'
+                    : 'These deductions and exemptions reduced your taxable income, saving you tax at your marginal rate (~30%).'}
+            </p>
+            
+            <!-- Savings breakdown container - will be updated by toggle -->
+            <div id="savingsBreakdown">
+                ${generateSavingsBreakdown(betterRegime === 'new' ? newResult : oldResult, betterRegime)}
+            </div>
+            
             <div style="margin-top: 16px; padding: 12px; background: var(--color-primary); color: white; border-radius: 6px; text-align: center;">
-                <strong>Total Estimated Tax Saved in Old Regime: ~${TaxUtils.formatCurrency(
-                    oldResult.log.filter(e => e.taxSaved).reduce((sum, e) => sum + (e.taxSaved || 0), 0)
+                <strong>Total Estimated Tax Saved in ${betterRegime === 'new' ? 'New' : 'Old'} Regime: ~${TaxUtils.formatCurrency(
+                    (betterRegime === 'new' ? newResult : oldResult).log.filter(e => e.taxSaved).reduce((sum, e) => sum + (e.taxSaved || 0), 0)
                 )}</strong>
             </div>
         </div>
         
-        <!-- Detailed Log -->
+        <!-- Detailed Log - Shows better regime by default, toggle for other -->
         <div class="result-card">
-            <h3 class="result-title" onclick="toggleLogSection()" style="cursor: pointer;">
-                📋 Detailed Calculation Log 
-                <span id="logToggle" style="float: right; font-size: 14px;">▼</span>
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="result-title" onclick="toggleLogSection()" style="cursor: pointer; margin: 0;">
+                    📋 Detailed Calculation Log 
+                    <span id="logToggle" style="font-size: 14px;">▼</span>
+                </h3>
+            </div>
             <div id="logContent" class="log-section" style="display: none; max-height: 400px; overflow-y: auto;">
-                <h4 style="margin: 16px 0 8px; color: var(--color-primary);">New Regime Steps:</h4>
-                ${newResult.log.map(entry => `
-                    <div class="log-entry">
-                        <div class="section-name">${entry.section} - ${entry.item}</div>
-                        <div class="amount">${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}</div>
-                        <div class="explanation">${entry.explanation}</div>
-                        ${entry.taxSaved ? `<span class="tax-saved">Tax Saved: ~${TaxUtils.formatCurrency(entry.taxSaved)}</span>` : ''}
-                    </div>
-                `).join('')}
                 
-                <h4 style="margin: 24px 0 8px; color: var(--color-primary); border-top: 2px solid var(--color-border); padding-top: 16px;">Old Regime Steps:</h4>
-                ${oldResult.log.map(entry => `
-                    <div class="log-entry">
-                        <div class="section-name">${entry.section} - ${entry.item}</div>
-                        <div class="amount">${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}</div>
-                        <div class="explanation">${entry.explanation}</div>
-                        ${entry.taxSaved ? `<span class="tax-saved">Tax Saved: ~${TaxUtils.formatCurrency(entry.taxSaved)}</span>` : ''}
+                <!-- Better Regime Log (shown by default) -->
+                <div id="betterRegimeLog">
+                    <h4 style="margin: 16px 0 8px; color: var(--color-success);">
+                        ✅ ${betterRegime === 'new' ? 'New' : 'Old'} Regime Steps (RECOMMENDED):
+                    </h4>
+                    ${(betterRegime === 'new' ? newResult : oldResult).log.map(entry => `
+                        <div class="log-entry">
+                            <div class="section-name">${entry.section} - ${entry.item}</div>
+                            <div class="amount">${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}</div>
+                            <div class="explanation">${entry.explanation}</div>
+                            ${entry.taxSaved ? `<span class="tax-saved">Tax Saved: ~${TaxUtils.formatCurrency(entry.taxSaved)}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- Other Regime Log (collapsible) -->
+                <div style="margin-top: 16px; border-top: 2px solid var(--color-border); padding-top: 16px;">
+                    <h4 onclick="toggleOtherRegimeLog()" style="cursor: pointer; color: var(--color-warning); display: flex; align-items: center; gap: 8px;">
+                        <span id="otherRegimeToggle" style="font-size: 12px;">►</span>
+                        ${betterRegime === 'new' ? 'Old' : 'New'} Regime Steps (Alternative):
+                    </h4>
+                    <div id="otherRegimeLogContent" style="display: none;">
+                        ${(betterRegime === 'new' ? oldResult : newResult).log.map(entry => `
+                            <div class="log-entry">
+                                <div class="section-name">${entry.section} - ${entry.item}</div>
+                                <div class="amount">${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}</div>
+                                <div class="explanation">${entry.explanation}</div>
+                                ${entry.taxSaved ? `<span class="tax-saved">Tax Saved: ~${TaxUtils.formatCurrency(entry.taxSaved)}</span>` : ''}
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
+                </div>
             </div>
         </div>
     `;
+}
+
+// Helper function to generate savings breakdown HTML
+function generateSavingsBreakdown(result, regimeName) {
+    const entries = result.log
+        .filter(entry => entry.taxSaved && entry.taxSaved > 0)
+        .sort((a, b) => b.taxSaved - a.taxSaved)
+        .slice(0, 8);
+    
+    if (entries.length === 0) {
+        if (regimeName === 'new') {
+            return `<p style="text-align: center; color: var(--color-text-secondary); padding: 20px;">
+                New Regime doesn't allow deductions beyond the ₹75,000 standard deduction. 
+                Your lower tax is due to the simplified slab structure.
+            </p>`;
+        }
+        return `<p style="text-align: center; color: var(--color-text-secondary); padding: 20px;">
+            No deductions claimed. Add investments (80C, NPS) or health insurance (80D) to save tax!
+        </p>`;
+    }
+    
+    // Helper to get color scheme based on deduction type
+    const getTypeStyles = (type) => {
+        switch(type) {
+            case 'investment':  // Green - you keep/grow this money
+                return { border: '#22c55e', bg: '#dcfce7', icon: '💰' };
+            case 'expense':     // Orange - you spent this money
+                return { border: '#f59e0b', bg: '#fef3c7', icon: '📤' };
+            case 'exemption':   // Blue - automatic benefit
+                return { border: '#3b82f6', bg: '#dbeafe', icon: '🎁' };
+            default:
+                return { border: 'var(--color-success)', bg: 'white', icon: '✓' };
+        }
+    };
+    
+    return `<div style="display: flex; flex-direction: column; gap: 12px;">
+        ${entries.map(entry => {
+            const styles = getTypeStyles(entry.deductionType);
+            return `
+            <div style="background: ${styles.bg}; padding: 12px; border-radius: 6px; border-left: 4px solid ${styles.border};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--color-text-primary);">${styles.icon} ${entry.item}</strong>
+                    <span style="color: ${styles.border}; font-weight: 600;">~${TaxUtils.formatCurrency(entry.taxSaved)} saved</span>
+                </div>
+                <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 6px;">
+                    <strong>Amount claimed:</strong> ${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}
+                </div>
+                <div style="font-size: 12px; color: #374151; margin-top: 4px;">
+                    ${entry.deductionType === 'investment' ? '💡 <em>This builds your wealth!</em>' : 
+                      entry.deductionType === 'expense' ? '💡 <em>Expense that reduces taxable income</em>' :
+                      entry.deductionType === 'exemption' ? '💡 <em>Automatic tax benefit</em>' : ''}
+                </div>
+            </div>
+        `}).join('')}
+    </div>`;
+}
+
+// Toggle to show OTHER regime's savings (swap view)
+function toggleDisplayedRegime() {
+    if (!lastNewResult || !lastOldResult) return;
+    
+    const currentRegime = document.getElementById('displayedRegimeName').textContent;
+    const betterRegime = lastNewResult.finalTax <= lastOldResult.finalTax ? 'new' : 'old';
+    
+    // Determine which regime to show
+    const showingBetter = (currentRegime === 'New' && betterRegime === 'new') || 
+                          (currentRegime === 'Old' && betterRegime === 'old');
+    const newRegimeToShow = showingBetter ? (betterRegime === 'new' ? 'old' : 'new') : betterRegime;
+    const result = newRegimeToShow === 'new' ? lastNewResult : lastOldResult;
+    
+    // Update display
+    document.getElementById('displayedRegimeName').textContent = newRegimeToShow === 'new' ? 'New' : 'Old';
+    document.getElementById('savingsBreakdown').innerHTML = generateSavingsBreakdown(result, newRegimeToShow);
+    document.getElementById('toggleRegimeBtn').innerHTML = `🔄 View ${newRegimeToShow === 'new' ? 'Old' : 'New'} Regime`;
+}
+
+// Toggle other regime log visibility
+function toggleOtherRegimeLog() {
+    const content = document.getElementById('otherRegimeLogContent');
+    const toggle = document.getElementById('otherRegimeToggle');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggle.textContent = '▼';
+    } else {
+        content.style.display = 'none';
+        toggle.textContent = '►';
+    }
 }
 
 // generateSingleRegimeReport removed - always use comparison mode
@@ -1987,6 +2125,12 @@ function generateDetailedModalComparison(newResult, oldResult, userData) {
 // Expose modal functions globally
 window.openBreakdownModal = openBreakdownModal;
 window.closeBreakdownModal = closeBreakdownModal;
+
+// Expose toggle functions globally
+window.toggleLogSection = toggleLogSection;
+window.toggleDisplayedRegime = toggleDisplayedRegime;
+window.toggleOtherRegimeLog = toggleOtherRegimeLog;
+window.generateSavingsBreakdown = generateSavingsBreakdown;
 
 // ============================================
 // GLOBAL ERROR HANDLER

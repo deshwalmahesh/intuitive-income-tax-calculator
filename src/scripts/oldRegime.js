@@ -208,7 +208,8 @@ class OldRegimeCalculator {
                 breakdown.standardDeduction,
                 50000,
                 'Automatic ₹50,000 deduction for salaried individuals under Old Regime.',
-                breakdown.standardDeduction * 0.30
+                breakdown.standardDeduction * 0.30,
+                'exemption'  // Blue - automatic benefit
             );
         } else {
             breakdown.standardDeduction = 0;
@@ -247,7 +248,7 @@ class OldRegimeCalculator {
         
         // HRA Exemption - Section 10(13A) + Rule 2A
         const hraExemption = this.calculateHRAExemption(userData);
-        breakdown.hra = hraExemption.amount;
+        breakdown.hraExemption = hraExemption.amount;  // Note: property name matches display expectation
         
         // LTA Exemption - Section 10(5)
         const ltaExemption = this.calculateLTAExemption(userData);
@@ -384,8 +385,39 @@ class OldRegimeCalculator {
         const employmentPeriods = userData.employmentPeriods || [];
         const hraConfig = this.exemptionConfig.hra;
         
+        console.log('[HRA DEBUG] rentPayments:', JSON.stringify(rentPayments));
+        console.log('[HRA DEBUG] employmentPeriods:', JSON.stringify(employmentPeriods.map(p => ({
+            startMonth: p.startMonth, startYear: p.startYear, 
+            endMonth: p.endMonth, endYear: p.endYear,
+            hraReceived: p.hraReceived, basicPlusDA: p.basicPlusDA
+        }))));
+        
         // If no rent info, no exemption
         if (rentPayments.length === 0 && (!userData.rentPaid || userData.rentPaid === 0)) {
+            console.log('[HRA DEBUG] No rent payments found, returning 0');
+            this.addLog(
+                'Section 10(13A)',
+                'HRA Exemption',
+                0,
+                null,
+                'No rent payments entered. Add rent details in the HRA section to claim exemption.',
+                0
+            );
+            return { amount: 0, applicable: false, periodBreakdown: [] };
+        }
+        
+        // If no employment periods with HRA, no exemption
+        const totalHRAReceived = employmentPeriods.reduce((sum, p) => sum + (Number(p.hraReceived) || 0), 0);
+        if (totalHRAReceived === 0 && (!userData.hraReceived || userData.hraReceived === 0)) {
+            console.log('[HRA DEBUG] No HRA received in any job, returning 0');
+            this.addLog(
+                'Section 10(13A)',
+                'HRA Exemption',
+                0,
+                null,
+                'No HRA component in salary. Enter HRA received in Employment section to claim exemption.',
+                0
+            );
             return { amount: 0, applicable: false, periodBreakdown: [] };
         }
         
@@ -402,18 +434,18 @@ class OldRegimeCalculator {
         
         const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
-        // Helper: Check if date is within range
+        // Helper: Check if date is within range - ENSURE NUMERIC COMPARISON
         const isMonthInPeriod = (targetM, targetY, startM, startY, endM, endY) => {
-            const target = targetY * 100 + targetM;
-            const start = startY * 100 + startM;
-            const end = endY * 100 + endM;
+            // Force all values to numbers
+            const target = Number(targetY) * 100 + Number(targetM);
+            const start = Number(startY) * 100 + Number(startM);
+            const end = Number(endY) * 100 + Number(endM);
             return target >= start && target <= end;
         };
         
         for (const { m, y } of fyMonths) {
-            // 1. Find active employment for this month
-            // We use the first matching job if overlaps exist
-            const activeJob = employmentPeriods.find(job => 
+            // 1. Find ALL active employment periods for this month to handle overlaps/ghost entries
+            const activeJobs = employmentPeriods.filter(job => 
                 isMonthInPeriod(m, y, job.startMonth, job.startYear, job.endMonth, job.endYear)
             );
             
@@ -422,28 +454,39 @@ class OldRegimeCalculator {
                 isMonthInPeriod(m, y, rent.startMonth, rent.startYear, rent.endMonth, rent.endYear)
             );
             
-            // If we have both Job (with HRA) and Rent, calculate
-            if (activeJob && activeRent) {
-                // Determine monthly values.
-                // We assume input values are TOTAL for the period.
-                // Re-calculate activeJob actual duration in months to divide accurately.
-                const jobStart = activeJob.startYear * 12 + activeJob.startMonth;
-                const jobEnd = activeJob.endYear * 12 + activeJob.endMonth;
-                const jobDuration = Math.max(1, jobEnd - jobStart + 1);
+            // If we have at least one Job and active Rent, calculate
+            if (activeJobs.length > 0 && activeRent) {
+                // Aggregate monthly values from all active jobs
+                let monthlyBasic = 0;
+                let monthlyHRA = 0;
                 
-                const monthlyBasic = (activeJob.basicPlusDA || 0) / jobDuration;
-                const monthlyHRA = (activeJob.hraReceived || 0) / jobDuration;
-                
-                if (monthlyHRA > 0 && activeRent.amount > 0) {
-                    const monthlyRent = activeRent.amount; // Rent input is Monthly
-                    const isMetro = activeRent.isMetro;
+                activeJobs.forEach(job => {
+                    const jobStartNum = Number(job.startYear) * 12 + Number(job.startMonth);
+                    const jobEndNum = Number(job.endYear) * 12 + Number(job.endMonth);
+                    const jobDuration = Math.max(1, jobEndNum - jobStartNum + 1);
                     
+                    monthlyBasic += (Number(job.basicPlusDA) || 0) / jobDuration;
+                    monthlyHRA += (Number(job.hraReceived) || 0) / jobDuration;
+                });
+                // Calculate rent duration to derive monthly rent
+                const rentStartNum = Number(activeRent.startYear) * 12 + Number(activeRent.startMonth);
+                const rentEndNum = Number(activeRent.endYear) * 12 + Number(activeRent.endMonth);
+                const rentDuration = Math.max(1, rentEndNum - rentStartNum + 1);
+                
+                const monthlyRent = (Number(activeRent.amount) || 0) / rentDuration;
+                const isMetro = activeRent.isMetro === true || activeRent.isMetro === 'true';
+                
+                console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: basicMonthly=${monthlyBasic}, hraMonthly=${monthlyHRA}, rent=${monthlyRent}, metro=${isMetro}`);
+                
+                if (monthlyHRA > 0 && monthlyRent > 0) {
                     // The 3 Limits (Monthly)
                     const limit1 = monthlyHRA; // Actual HRA
-                    const limit2 = monthlyBasic * (isMetro ? hraConfig.metroPercentage : hraConfig.nonMetroPercentage); // 50% or 40% Basic
-                    const limit3 = monthlyRent - (monthlyBasic * hraConfig.rentExcess); // Rent - 10% Basic
+                    const limit2 = monthlyBasic * (isMetro ? hraConfig.metroPercentage : hraConfig.nonMetroPercentage);
+                    const limit3 = monthlyRent - (monthlyBasic * hraConfig.rentExcess);
                     
                     const monthlyExemption = Math.max(0, TaxUtils.leastOf(limit1, limit2, Math.max(0, limit3)));
+                    
+                    console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: L1=${limit1}, L2=${limit2}, L3=${limit3}, exemption=${monthlyExemption}`);
                     
                     totalHRAExemption += monthlyExemption;
                     
@@ -456,19 +499,40 @@ class OldRegimeCalculator {
                         city: isMetro ? 'Metro' : 'Non-Metro'
                     });
                 }
+            } else {
+                console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: Missing - job=${!!activeJob}, rent=${!!activeRent}`);
             }
         }
         
-        // Log results
+        console.log('[HRA DEBUG] Total HRA Exemption:', totalHRAExemption);
+        
+        // ALWAYS log HRA calculation status
         if (totalHRAExemption > 0) {
-             const distinctRegions = [...new Set(monthlyBreakdown.map(b => b.city))].join(', ');
-             this.addLog(
+            const distinctRegions = [...new Set(monthlyBreakdown.map(b => b.city))].join(', ');
+            const totalRentPaidCalc = monthlyBreakdown.reduce((sum, b) => sum + b.rent, 0);
+            const totalHRAReceivedCalc = monthlyBreakdown.reduce((sum, b) => sum + b.hra, 0);
+            
+            this.addLog(
                 'Section 10(13A)',
-                `HRA Exemption (Monthly Calc)`,
+                'HRA Exemption',
                 totalHRAExemption,
                 null,
-                `Calculated based on actual monthly rent & salary across 12 months. Regions: ${distinctRegions}. Total HRA Received: ${TaxUtils.formatCurrency(userData.hraReceived)}.`,
+                `Exemption = MIN(HRA received, ${monthlyBreakdown[0]?.city === 'Metro' ? '50%' : '40%'} of Basic, Rent-10% Basic) per month. ` +
+                `Annual Rent: ${TaxUtils.formatCurrency(totalRentPaidCalc)} | ` +
+                `Annual HRA: ${TaxUtils.formatCurrency(totalHRAReceivedCalc)} | ` +
+                `Total Exemption: ${TaxUtils.formatCurrency(totalHRAExemption)}. ` +
+                `City: ${distinctRegions}.`,
                 totalHRAExemption * 0.30
+            );
+        } else {
+            // Log why no exemption
+            this.addLog(
+                'Section 10(13A)',
+                'HRA Exemption',
+                0,
+                null,
+                `No HRA exemption calculated. Ensure: (1) HRA is entered in Employment section, (2) Rent is entered in HRA section, (3) Dates overlap correctly.`,
+                0
             );
         }
         
@@ -652,7 +716,8 @@ class OldRegimeCalculator {
                 breakdown.section80CCD1B,
                 50000,
                 'EXTRA ₹50,000 deduction for NPS Tier-1, OVER AND ABOVE the 80C limit. Maximum savings!',
-                breakdown.section80CCD1B * 0.30
+                breakdown.section80CCD1B * 0.30,
+                'investment'  // Green - builds retirement corpus
             );
         }
         
@@ -675,7 +740,8 @@ class OldRegimeCalculator {
                 breakdown.section80CCD2,
                 maxEmployerNPS,
                 `Employer's NPS contribution. Limit: ${TaxUtils.formatPercent(maxEmployerPercent)} of Basic+DA for ${employerType} employees. NO overall cap!`,
-                breakdown.section80CCD2 * 0.30
+                breakdown.section80CCD2 * 0.30,
+                'investment'  // Green - builds retirement corpus
             );
         }
         
@@ -834,55 +900,20 @@ class OldRegimeCalculator {
         // =====================
         // SECTION 80GGC - Political Party Donations
         // =====================
-        const politicalDonations = TaxUtils.validateNumber(userData.politicalPartyDonation);
-        breakdown.section80GGC = politicalDonations;  // 100% deduction
-        
-        if (politicalDonations > 0) {
-            this.addLog(
-                'Section 80GGC',
-                'Political Party Donation',
-                politicalDonations,
-                null,
-                '100% deduction for donations to registered political parties. Cash NOT allowed - only cheque/draft/online.'
-            );
-        }
+        // =====================
+        // SECTION 80GGC - Political Party Donations
+        // =====================
+        // Now handled by internal calculation from raw donations list
+        breakdown.section80GGC = this.calculate80GGC(userData);
         
         // =====================
         // SECTION 80GGA - Scientific Research/Rural Development
         // =====================
-        const scientificDonation = TaxUtils.validateNumber(userData.scientificResearchDonation);
-        if (scientificDonation > 0) {
-            // Only available if NOT claiming business/profession income
-            const hasBusinessIncome = TaxUtils.validateNumber(userData.businessIncome) > 0;
-            if (!hasBusinessIncome) {
-                // Cash donations > ₹2000 not allowed
-                const paymentMode = userData.scientificDonationPaymentMode || 'online';
-                const eligibleAmount = paymentMode === 'cash' && scientificDonation > 2000 
-                    ? 2000 
-                    : scientificDonation;
-                
-                breakdown.section80GGA = eligibleAmount;  // 100% deduction
-                
-                this.addLog(
-                    'Section 80GGA',
-                    'Scientific Research Donation',
-                    eligibleAmount,
-                    null,
-                    '100% deduction for donations to approved scientific research institutions. Cash > ₹2,000 not eligible. NOT for business income taxpayers.'
-                );
-            } else {
-                breakdown.section80GGA = 0;
-                this.addLog(
-                    'Section 80GGA',
-                    'Scientific Research Donation - Not Eligible',
-                    0,
-                    null,
-                    '80GGA not available if you have business/profession income. Consider Section 35 instead.'
-                );
-            }
-        } else {
-            breakdown.section80GGA = 0;
-        }
+        // =====================
+        // SECTION 80GGA - Scientific Research/Rural Development
+        // =====================
+        // Now handled by internal calculation (combining static + dynamic inputs)
+        breakdown.section80GGA = this.calculate80GGA(userData);
         
         // =====================
         // SECTION 80GG - Rent (if no HRA)
@@ -1133,11 +1164,18 @@ class OldRegimeCalculator {
         const qualifyingLimit = agti * 0.10;  // 10% of AGTI
         
         let qualifyingDonationsTotal = 0;
+        const details = [];
         
         for (const donation of donations) {
             const amount = TaxUtils.validateNumber(donation.amount);
             const category = donation.category;
             const paymentMode = donation.paymentMode || 'online';
+            
+            // Skip Political Party (80GGC) and Scientific Research (80GGA)
+            // They are handled in their own dedicated functions
+            if (category === 'politicalParty' || category === 'approvedResearch') {
+                continue;
+            }
             
             // Cash > ₹2000 not allowed
             if (paymentMode === 'cash' && amount > gConfig.cashLimit) {
@@ -1146,7 +1184,9 @@ class OldRegimeCalculator {
                     'Cash Donation Limit Exceeded',
                     0,
                     gConfig.cashLimit,
-                    `Cash donation of ${TaxUtils.formatCurrency(amount)} exceeds ₹2,000 limit. NOT ELIGIBLE for deduction. Use cheque/online.`
+                    `Cash donation of ${TaxUtils.formatCurrency(amount)} exceeds ₹2,000 limit. NOT ELIGIBLE for deduction. Use cheque/online.`,
+                    0,
+                    'expense'
                 );
                 continue;
             }
@@ -1154,23 +1194,31 @@ class OldRegimeCalculator {
             // Determine category and calculate deduction
             let deductionPercent = 0;
             let hasQualifyingLimit = false;
+            let categoryLabel = '50% (Subject to Limit)';
             
             if (gConfig.categories.fullNoLimit.items.some(i => i.id === category)) {
                 deductionPercent = 1.0;
                 hasQualifyingLimit = false;
+                categoryLabel = '100% (No Limit)';
             } else if (gConfig.categories.halfNoLimit.items.some(i => i.id === category)) {
                 deductionPercent = 0.5;
                 hasQualifyingLimit = false;
+                categoryLabel = '50% (No Limit)';
             } else if (gConfig.categories.fullWithLimit.items.some(i => i.id === category)) {
                 deductionPercent = 1.0;
                 hasQualifyingLimit = true;
+                categoryLabel = '100% (Subject to Limit)';
             } else {
                 // Default: 50% with qualifying limit (most NGOs)
                 deductionPercent = 0.5;
                 hasQualifyingLimit = true;
+                categoryLabel = '50% (Subject to Limit)';
             }
             
             let deduction = amount * deductionPercent;
+            
+            // Store detail for log
+            details.push(`${categoryLabel}: ${TaxUtils.formatCurrency(amount)} → ${TaxUtils.formatCurrency(deduction)}`);
             
             if (hasQualifyingLimit) {
                 qualifyingDonationsTotal += deduction;
@@ -1184,13 +1232,27 @@ class OldRegimeCalculator {
         const cappedQualifying = Math.min(qualifyingDonationsTotal, qualifyingLimit);
         totalDeduction += cappedQualifying;
         
+        // Add detailed logs
         if (donations.length > 0) {
+            let explanation = `Donations Breakdown: ${details.join(' | ')}.`;
+            
+            if (qualifyingDonationsTotal > 0) {
+                explanation += ` Qualifying Donations Total: ${TaxUtils.formatCurrency(qualifyingDonationsTotal)}.`;
+                if (qualifyingDonationsTotal > qualifyingLimit) {
+                    explanation += ` CAPPED at 10% of Adjusted Income (${TaxUtils.formatCurrency(qualifyingLimit)}).`;
+                }
+            } else {
+                explanation += ` Total Deductible: ${TaxUtils.formatCurrency(totalDeduction)}`;
+            }
+            
             this.addLog(
                 'Section 80G',
                 'Charitable Donations',
                 totalDeduction,
                 null,
-                `Total donation deductions. Some at 100%, some at 50%. Donations to NGOs/trusts capped at 10% of adjusted income (${TaxUtils.formatCurrency(qualifyingLimit)}).`
+                explanation,
+                totalDeduction * 0.30,
+                'expense'
             );
         }
         
@@ -1261,7 +1323,8 @@ class OldRegimeCalculator {
                     'Savings Interest Deduction',
                     deduction,
                     ttaConfig.maxLimit,
-                    `Non-seniors: Only SAVINGS account interest deductible, up to ₹10,000. FD interest NOT included.`
+                    `Non-seniors: Only SAVINGS account interest deductible, up to ₹10,000. FD interest NOT included.`,
+                    deduction * 0.30
                 );
             }
             
@@ -1333,6 +1396,113 @@ class OldRegimeCalculator {
         }
         
         return { applicable: false, amount: 0 };
+    }
+
+    /**
+     * Calculate 80GGC Political Party Donations
+     * Deductible: 100% of donation to registered political party
+     * Condition: CANNOT be in cash
+     */
+    calculate80GGC(userData) {
+        // Collect from dynamic donations list
+        const donations = userData.donations || [];
+        let total = 0;
+        
+        // Filter specifically for politicalParty category
+        const politicalDonations = donations.filter(d => d.category === 'politicalParty' && d.amount > 0);
+        
+        for (const donation of politicalDonations) {
+            // STRICT VALIDATION: No cash allowed
+            if (donation.paymentMode === 'cash') {
+                this.addLog(
+                    'Section 80GGC Warning',
+                    'Political Donation Rejected',
+                    0,
+                    null,
+                    `Cash donation of ${TaxUtils.formatCurrency(donation.amount)} to political party is NOT allowed. Must be via cheque/online.`,
+                    0,
+                    'expense'
+                );
+                continue;
+            }
+            total += donation.amount;
+        }
+        
+        if (total > 0) {
+            this.addLog(
+                'Section 80GGC',
+                'Political Party Donation',
+                total,
+                null,
+                `100% deduction for non-cash donations to registered political parties.`,
+                total * 0.30,
+                'expense'
+            );
+        }
+        
+        return total;
+    }
+
+    /**
+     * Calculate 80GGA Scientific Research Donations
+     * Deductible: 100% of donation to approved research association
+     * Condition: Cash confined to ₹2000 (similar to 80G) purely for research
+     */
+    calculate80GGA(userData) {
+        let total = 0;
+        
+        // 1. Static Input (from main form)
+        const staticInput = TaxUtils.validateNumber(userData.scientificResearchDonation);
+        const staticMode = userData.scientificDonationPaymentMode || 'online';
+        
+        if (staticInput > 0) {
+             if (staticMode === 'cash' && staticInput > 2000) {
+                this.addLog(
+                    'Section 80GGA',
+                    'Scientific Research (Static)',
+                    0,
+                    2000,
+                    `Cash limit exceeded for scientific research donation (${TaxUtils.formatCurrency(staticInput)}). Max allowed cash is ₹2,000.`,
+                    0
+                );
+             } else {
+                 total += staticInput;
+             }
+        }
+
+        // 2. Dynamic Input (from donations list)
+        const donations = userData.donations || [];
+        const researchDonations = donations.filter(d => d.category === 'approvedResearch' && d.amount > 0);
+        
+        for (const donation of researchDonations) {
+            // Cash check (> 2000 not allowed)
+             if (donation.paymentMode === 'cash' && donation.amount > 2000) {
+                this.addLog(
+                    'Section 80GGA',
+                    'Scientific Research (Dynamic)',
+                    0,
+                    2000,
+                    `Cash limit exceeded for scientific research donation (${TaxUtils.formatCurrency(donation.amount)}). Max allowed cash is ₹2,000.`,
+                    0
+                );
+                continue;
+             }
+             total += donation.amount;
+        }
+
+        if (total > 0) {
+            this.addLog(
+                'Section 80GGA',
+                'Scientific Research Donation',
+                total,
+                null,
+                `100% deduction for donations to approved scientific research institutions.`,
+                total * 0.30,
+                'expense'
+            );
+        }
+
+        return total;
     }
 
     /**
@@ -1556,9 +1726,10 @@ class OldRegimeCalculator {
 
     /**
      * Add entry to calculation log
+     * @param {string} deductionType - 'investment', 'expense', 'exemption', or 'neutral'
      */
-    addLog(section, item, amount, limit, explanation, taxSaved = null) {
-        this.log.push(TaxUtils.createLogEntry(section, item, amount, limit, explanation, taxSaved));
+    addLog(section, item, amount, limit, explanation, taxSaved = null, deductionType = 'neutral') {
+        this.log.push(TaxUtils.createLogEntry(section, item, amount, limit, explanation, taxSaved, deductionType));
     }
 }
 
