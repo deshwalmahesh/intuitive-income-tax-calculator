@@ -1120,16 +1120,13 @@ function collectUserData() {
         epfContribution: totalEPF,
         
         // Rent Payments (Dynamic)
+        // NOTE: r.amount = TOTAL rent paid for the period (not monthly)
         rentPayments: rentPayments.filter(r => r.amount > 0),
-        annualRentPaid: rentPayments.reduce((sum, r) => {
-             // Calculate annual rent from monthly entries
-             const months = calculatePeriodMonths(r);
-             return sum + (r.amount * months);
-        }, 0),
-        rentPaid: rentPayments.reduce((sum, r) => {
-             const months = calculatePeriodMonths(r);
-             return sum + (r.amount * months);
-        }, 0), // Aggregate for backward compatibility if needed
+        // Sum of all rent period durations (for validation - should not exceed 12)
+        totalRentMonths: rentPayments.reduce((sum, r) => sum + calculatePeriodMonths(r), 0),
+        // Annual rent = sum of all period totals (amount is already total for period)
+        annualRentPaid: rentPayments.reduce((sum, r) => sum + r.amount, 0),
+        rentPaid: rentPayments.reduce((sum, r) => sum + r.amount, 0), // Aggregate for backward compatibility
         
         // Aggregated HRA for backward compatibility
         hraReceived: totalHRA,
@@ -1316,6 +1313,15 @@ function validateAndNormalizeInputs(userData) {
     // 11. Agricultural income partial integration warning
     if (userData.agriculturalIncome > 5000 && userData.grossSalary > 0) {
         warnings.push('Note: Agricultural income > ₹5,000 may trigger partial integration, affecting tax rate.');
+    }
+    
+    // 12. Rent Period Validation
+    if (userData.totalRentMonths > 0) {
+        if (userData.totalRentMonths > 12) {
+            warnings.push(`⚠️ Rent periods sum to ${userData.totalRentMonths} months (exceeds 12). Please check for overlapping periods.`);
+        } else if (userData.totalRentMonths < 12 && userData.hraReceived > 0) {
+            warnings.push(`ℹ️ Rent entered for only ${userData.totalRentMonths} month(s). HRA exemption will be calculated ONLY for these months, not the full year.`);
+        }
     }
     
     // === NEW SALARY COMPONENT VALIDATIONS ===

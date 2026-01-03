@@ -385,16 +385,16 @@ class OldRegimeCalculator {
         const employmentPeriods = userData.employmentPeriods || [];
         const hraConfig = this.exemptionConfig.hra;
         
-        console.log('[HRA DEBUG] rentPayments:', JSON.stringify(rentPayments));
-        console.log('[HRA DEBUG] employmentPeriods:', JSON.stringify(employmentPeriods.map(p => ({
-            startMonth: p.startMonth, startYear: p.startYear, 
-            endMonth: p.endMonth, endYear: p.endYear,
-            hraReceived: p.hraReceived, basicPlusDA: p.basicPlusDA
-        }))));
+        
+        // Debug summary (not per-month to reduce noise)
+        console.log('[HRA] Input Summary:', {
+            rentPeriods: rentPayments.length,
+            employmentPeriods: employmentPeriods.length,
+            totalHRAReceived: employmentPeriods.reduce((sum, p) => sum + (Number(p.hraReceived) || 0), 0)
+        });
         
         // If no rent info, no exemption
         if (rentPayments.length === 0 && (!userData.rentPaid || userData.rentPaid === 0)) {
-            console.log('[HRA DEBUG] No rent payments found, returning 0');
             this.addLog(
                 'Section 10(13A)',
                 'HRA Exemption',
@@ -409,7 +409,6 @@ class OldRegimeCalculator {
         // If no employment periods with HRA, no exemption
         const totalHRAReceived = employmentPeriods.reduce((sum, p) => sum + (Number(p.hraReceived) || 0), 0);
         if (totalHRAReceived === 0 && (!userData.hraReceived || userData.hraReceived === 0)) {
-            console.log('[HRA DEBUG] No HRA received in any job, returning 0');
             this.addLog(
                 'Section 10(13A)',
                 'HRA Exemption',
@@ -476,17 +475,14 @@ class OldRegimeCalculator {
                 const monthlyRent = (Number(activeRent.amount) || 0) / rentDuration;
                 const isMetro = activeRent.isMetro === true || activeRent.isMetro === 'true';
                 
-                console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: basicMonthly=${monthlyBasic}, hraMonthly=${monthlyHRA}, rent=${monthlyRent}, metro=${isMetro}`);
-                
                 if (monthlyHRA > 0 && monthlyRent > 0) {
                     // The 3 Limits (Monthly)
                     const limit1 = monthlyHRA; // Actual HRA
                     const limit2 = monthlyBasic * (isMetro ? hraConfig.metroPercentage : hraConfig.nonMetroPercentage);
                     const limit3 = monthlyRent - (monthlyBasic * hraConfig.rentExcess);
                     
-                    const monthlyExemption = Math.max(0, TaxUtils.leastOf(limit1, limit2, Math.max(0, limit3)));
                     
-                    console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: L1=${limit1}, L2=${limit2}, L3=${limit3}, exemption=${monthlyExemption}`);
+                    const monthlyExemption = Math.max(0, TaxUtils.leastOf(limit1, limit2, Math.max(0, limit3)));
                     
                     totalHRAExemption += monthlyExemption;
                     
@@ -499,12 +495,15 @@ class OldRegimeCalculator {
                         city: isMetro ? 'Metro' : 'Non-Metro'
                     });
                 }
-            } else {
-                console.log(`[HRA DEBUG] ${monthNames[m]} ${y}: Missing - job=${!!activeJob}, rent=${!!activeRent}`);
             }
+            // Removed per-month 'missing' logs - they clutter the console
         }
         
-        console.log('[HRA DEBUG] Total HRA Exemption:', totalHRAExemption);
+        // Summary log - kept for useful debugging
+        console.log('[HRA] Calculation Result:', {
+            monthsCalculated: monthlyBreakdown.length,
+            totalExemption: totalHRAExemption
+        });
         
         // ALWAYS log HRA calculation status
         if (totalHRAExemption > 0) {
