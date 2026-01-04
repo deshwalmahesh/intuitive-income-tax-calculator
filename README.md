@@ -2,6 +2,8 @@
 
 **Smart, Private, and Instant Tax Planning.**
 
+[**🔴 LIVE DEMO**](https://deshwalmahesh.github.io/intuitive-income-tax-calculator/)
+
 ## 🧐 What is this?
 
 A privacy-focused web application that helps Indian taxpayers calculate and optimize their income tax. It compares the **Old Regime vs. New Regime** side-by-side to find your best savings. It has almost **ALL** the features which can save some tax or decrease the tax liability. It gives you a breakdown of what saved to tax, how and what else can you use to save more tax.
@@ -31,10 +33,20 @@ We use **Google Gemini 3 Flash**, a powerful multimodal AI model.
 3.  **Fill**: The AI returns a structured JSON object, which the app automatically maps to the input fields.
     _Note: This feature requires a **FREE** API key from Google AI Studio. You must bring your own key to use the AI features._
 
-## 🛠️ How to Run
+## 🛠️ How to Run Locally
 
 The simplest way—no installation required!
 
 1.  **Clone** this repository (or download the files).
-2.  **Open** the `src/index.html` file in **Chrome** (or any modern browser).
+2.  **Open** the `docs/index.html` file in **Chrome** (or any modern browser).
 3.  **Start** calculating!
+
+## 🌐 Deploying to GitHub Pages
+
+This project is structured for easy deployment on GitHub Pages.
+
+1.  **Push** this repository to GitHub.
+2.  Go to your repository's **Settings** → **Pages**.
+3.  Under "Build and deployment" → "Source", select **Deploy from a branch**.
+4.  Choose `main` (or your default branch) and the `/docs` folder.
+5.  Click **Save**. Your site will be live at `https://<username>.github.io/<repository-name>/`.

@@ -38,9 +38,15 @@
             <div class="section-header" onclick="toggleSection('upload')">
               <span class="section-icon">📄</span>
               <h2 class="section-title">Upload Tax Documents (Auto-Fill)</h2>
+              
               <span class="section-badge section-badge--new">✨ AI</span>
               <button class="section-toggle" id="toggle-upload">▼</button>
             </div>
+            <p class="help-text" style="margin-bottom: 12px; background: var(--color-info-bg); padding: 10px; border-radius: 6px; line-height: 1.5;">
+                <span class="info-icon">💡</span>
+                <strong>Optional:</strong> Auto-fill your details by uploading Form-16, salary slips, or tax statements. 
+                Upload one document per job. AI will extract the values for you to review and edit.
+              </p>
             <div class="section-content" id="content-upload">
               <div class="api-key-container" style="background: var(--color-bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid var(--color-border);">
                 <label for="geminiApiKey" style="display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px;">Gemini API Key (Required for Extraction)</label>
@@ -54,12 +60,6 @@
                     Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>. Saved locally.
                 </p>
               </div>
-
-              <p class="help-text" style="margin-bottom: 12px; background: var(--color-info-bg); padding: 10px; border-radius: 6px; line-height: 1.5;">
-                <span class="info-icon">💡</span>
-                <strong>Optional:</strong> Auto-fill your details by uploading Form-16, salary slips, or tax statements. 
-                Upload one document per job—AI will extract the values for you to review and edit.
-              </p>
 
               <div id="documentUploadArea" class="upload-area">
                 <input type="file" id="taxDocuments" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display: none" />
