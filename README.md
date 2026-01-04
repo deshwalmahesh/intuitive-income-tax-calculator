@@ -1,8 +1,6 @@
-# 🇮🇳 India Tax Calculator (FY 2025-26)
+# 🇮🇳 Indian Income Tax Calculator (FY 2025-26)
 
-**Smart, Private, and Instant Tax Planning.**
-
-[**🔴 LIVE DEMO**](https://deshwalmahesh.github.io/intuitive-income-tax-calculator/)
+**Intuitive, Smart, Private, and Instant Tax Saving Help.** See for yourself: [**Live Demo**](https://deshwalmahesh.github.io/intuitive-income-tax-calculator/)
 
 ## 🧐 What is this?
 
@@ -50,3 +48,6 @@ This project is structured for easy deployment on GitHub Pages.
 3.  Under "Build and deployment" → "Source", select **Deploy from a branch**.
 4.  Choose `main` (or your default branch) and the `/docs` folder.
 5.  Click **Save**. Your site will be live at `https://<username>.github.io/<repository-name>/`.
+
+ # Not to mention:
+ Any help, bugs, changes, features are always welcomed specially formula or some tax saving stuff I might have missed. For now, it's noth taking Business into consideration but maybe with all the love, we might add more features!
