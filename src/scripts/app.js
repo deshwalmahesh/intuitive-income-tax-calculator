@@ -143,7 +143,15 @@ function createEmploymentPeriodFromExtraction(extractedData) {
     updateEmploymentSummary();
     updateOldRegimeSections();
     
-    console.log(`[App] Created employment period from extraction: ${extractedData.employerName || 'Unknown'}`);
+    // Comprehensive log
+    const populatedFields = Object.entries(fieldsMap)
+        .filter(([extractKey]) => extractedData[extractKey] && extractedData[extractKey] > 0)
+        .map(([extractKey, formKey]) => `${formKey}: ₹${extractedData[extractKey]?.toLocaleString()}`)
+        .join(', ');
+    
+    console.log(`[App] Created employment period: ${extractedData.employerName || 'Unknown'} (${newPeriod.id})`);
+    console.log(`[App] Populated fields: ${populatedFields || 'None'}`);
+    console.log(`[App] Period: ${extractedData.startMonth}/${extractedData.startYear} - ${extractedData.endMonth}/${extractedData.endYear}`);
     
     return newPeriod;
 }
@@ -259,98 +267,148 @@ window.removeRentPayment = removeRentPayment;
  * @param {Object} aggregatedData - Aggregated data from multiple job extractions
  */
 function populateGlobalFieldsFromExtraction(aggregatedData) {
-    // Helper to safely populate a field
-    const setField = (id, value) => {
+    // Helper to safely populate a field (logs if field not found)
+    const setField = (id, value, fieldDescription = '') => {
         if (value && value > 0) {
             const input = document.getElementById(id);
-            if (input) input.value = value;
+            if (input) {
+                input.value = value;
+                // Trigger events for reactive updates
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                return true;
+            } else {
+                console.warn(`[App] Field "${id}" not found in UI ${fieldDescription ? `(${fieldDescription})` : ''}`);
+                return false;
+            }
         }
+        return false;
     };
 
     // === PROFESSIONAL TAX (capped at 2500) ===
     if (aggregatedData.totalProfessionalTax) {
         const ptValue = Math.min(aggregatedData.totalProfessionalTax, 2500);
-        setField('professionalTax', ptValue);
+        setField('professionalTax', ptValue, 'Professional Tax');
     }
     
     // === HEALTH INSURANCE (80D) ===
-    setField('healthInsuranceSelf', aggregatedData.totalHealthInsuranceSelf);
-    setField('healthInsuranceParents', aggregatedData.totalHealthInsuranceParents);
+    setField('healthInsuranceSelf', aggregatedData.totalHealthInsuranceSelf, '80D Self');
+    setField('healthInsuranceParents', aggregatedData.totalHealthInsuranceParents, '80D Parents');
 
     // === EDUCATION LOAN INTEREST (80E) - Unlimited ===
-    setField('educationLoanInterest', aggregatedData.totalEducationLoanInterest);
+    setField('educationLoanInterest', aggregatedData.totalEducationLoanInterest, '80E');
 
     // === HOME LOAN (Section 24b + 80C Principal) ===
-    setField('homeLoanInterest', aggregatedData.totalHomeLoanInterest);
-    // Home loan principal goes into 80C - handled separately if UI supports
+    setField('homeLoanInterest', aggregatedData.totalHomeLoanInterest, 'Home Loan Interest');
+    setField('homeLoanPrincipal', aggregatedData.totalHomeLoanPrincipal, 'Home Loan Principal');
     
     // === LEGACY HOME LOAN (80EE / 80EEA / 80EEB) ===
-    setField('section80EEInterest', aggregatedData.totalSection80EEInterest);
-    setField('section80EEAInterest', aggregatedData.totalSection80EEAInterest);
-    setField('section80EEBInterest', aggregatedData.totalSection80EEBInterest);
+    setField('section80EEInterest', aggregatedData.totalSection80EEInterest, '80EE Interest');
+    setField('section80EEAInterest', aggregatedData.totalSection80EEAInterest, '80EEA Interest');
+    setField('section80EEBInterest', aggregatedData.totalSection80EEBInterest, '80EEB EV Loan');
 
     // === SECTION 89 RELIEF ===
-    setField('section89Relief', aggregatedData.totalSection89Relief);
+    setField('section89Relief', aggregatedData.totalSection89Relief, 'Section 89 Relief');
 
     // === AGNIVEER CORPUS (80CCH) ===
-    setField('agniveerContribution', aggregatedData.totalAgniveerContribution);
+    setField('agniveerContribution', aggregatedData.totalAgniveerContribution, 'Agniveer');
 
-    // === EMPLOYER NPS (80CCD(2)) ===
+    // === EMPLOYER NPS (80CCD(2)) - Global field ===
     if (aggregatedData.totalEmployerNPS && aggregatedData.totalEmployerNPS > 0) {
-        const npsInput = document.getElementById('employerNPSContribution');
-        // Fallback if not already set by per-job logic
-        if (npsInput && (!npsInput.value || npsInput.value == 0)) {
-            npsInput.value = aggregatedData.totalEmployerNPS;
-        }
+        setField('employerNPSContribution', aggregatedData.totalEmployerNPS, 'Employer NPS');
     }
 
     // === EMPLOYEE NPS (80CCD(1)) - Part of 80C ===
-    setField('employeeNPSContribution', aggregatedData.totalEmployeeNPS);
+    // Note: UI field is 'npsContribution' not 'employeeNPSContribution'
+    if (aggregatedData.totalEmployeeNPS && aggregatedData.totalEmployeeNPS > 0) {
+        setField('npsContribution', aggregatedData.totalEmployeeNPS, 'Employee NPS');
+    }
 
     // === DONATIONS (80G) ===
-    setField('donations80G', aggregatedData.totalDonations80G);
+    if (aggregatedData.totalDonations80G && aggregatedData.totalDonations80G > 0) {
+        // Create a donation entry if none exists
+        if (window.donations.length === 0) {
+            window.addDonation();
+        }
+        // Populate the first donation row
+        if (window.donations.length > 0) {
+            const entry = window.donations[0];
+            const amountInput = document.getElementById(`${entry.id}_amount`);
+            const categorySelect = document.getElementById(`${entry.id}_category`);
+            if (amountInput) {
+                amountInput.value = aggregatedData.totalDonations80G;
+                amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            // Set to generic charity (80G 50%)
+            if (categorySelect) {
+                categorySelect.value = 'charityTrust';
+                categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    }
 
-    // === RETIREMENT BENEFITS ===
-    setField('gratuityReceived', aggregatedData.totalGratuity);
-    setField('leaveEncashmentReceived', aggregatedData.totalLeaveEncashment);
-    setField('vrsCompensation', aggregatedData.totalVRSCompensation);
-    setField('retrenchmentCompensation', aggregatedData.totalRetrenchmentCompensation);
-    setField('commutedPension', aggregatedData.totalCommutedPension);
+    // === RETIREMENT BENEFITS (Correct field ID mappings) ===
+    setField('gratuityReceived', aggregatedData.totalGratuity, 'Gratuity');
+    setField('leaveEncashmentReceived', aggregatedData.totalLeaveEncashment, 'Leave Encashment');
+    setField('vrsCompensationReceived', aggregatedData.totalVRSCompensation, 'VRS Compensation');
+    setField('retrenchmentCompensation', aggregatedData.totalRetrenchmentCompensation, 'Retrenchment');
+    // Note: commutedPension doesn't have a UI field currently - could add later
 
     // === OTHER INCOME ===
-    setField('otherIncomeFromEmployer', aggregatedData.totalOtherIncomeFromEmployer);
-    setField('giftsFromNonRelatives', aggregatedData.totalGiftsFromNonRelatives);
+    // Note: These fields may not exist in current UI - just log if missing
+    setField('otherIncomeFromEmployer', aggregatedData.totalOtherIncomeFromEmployer, 'Other Income');
+    setField('nonRelativeGifts', aggregatedData.totalGiftsFromNonRelatives, 'Non-Relative Gifts');
 
-    // === 26AS SPECIFIC FIELDS ===
-    setField('tcsCollected', aggregatedData.totalTCS);
-    setField('advanceTaxPaid', aggregatedData.totalAdvanceTax);
-    setField('selfAssessmentTaxPaid', aggregatedData.totalSelfAssessmentTax);
-    // Refund is info only, typically not input
+    // === 26AS SPECIFIC FIELDS (May not have UI fields) ===
+    // TCS, Advance Tax, Self Assessment Tax - typically read-only info
+    // Just log for now - could add display fields later
+    if (aggregatedData.totalTCS > 0) {
+        console.log(`[App] TCS Collected: ₹${aggregatedData.totalTCS}`);
+    }
+    if (aggregatedData.totalAdvanceTax > 0) {
+        console.log(`[App] Advance Tax Paid: ₹${aggregatedData.totalAdvanceTax}`);
+    }
+    if (aggregatedData.totalSelfAssessmentTax > 0) {
+        console.log(`[App] Self Assessment Tax Paid: ₹${aggregatedData.totalSelfAssessmentTax}`);
+    }
 
     // === 80C DEDUCTIONS (Special Handling) ===
     if (aggregatedData.totalSection80CDeductions && aggregatedData.totalSection80CDeductions > 0) {
         // Ensure at least one investment row exists
         if (window.investments80C.length === 0) {
-            addInvestment80C();
+            window.addInvestment80C();
         }
         
         // Use the first investment row to show the extracted bulk 80C amount
         if (window.investments80C.length > 0) {
             const entry = window.investments80C[0];
             const amountInput = document.getElementById(`${entry.id}_amount`);
+            const typeSelect = document.getElementById(`${entry.id}_type`);
             
             if (amountInput) {
                 amountInput.value = aggregatedData.totalSection80CDeductions;
-                amountInput.dispatchEvent(new Event('change', { bubbles: true }));
                 amountInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
+            // Set to generic type
+            if (typeSelect) {
+                typeSelect.value = 'other80c';
+                typeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         }
+    }
+
+    // === HOME LOAN PRINCIPAL (add to 80C) ===
+    if (aggregatedData.totalHomeLoanPrincipal && aggregatedData.totalHomeLoanPrincipal > 0) {
+        setField('homeLoanPrincipal', aggregatedData.totalHomeLoanPrincipal, 'Home Loan Principal 80C');
     }
     
     console.log('[App] Populated global fields from extraction:', aggregatedData);
     
     // Trigger calculation update
     if (typeof debounceCalculate === 'function') debounceCalculate();
+    
+    // Update 80C totals
+    if (typeof updateTotal80C === 'function') updateTotal80C();
 }
 
 // Expose functions globally for taxDocumentUploader.js
@@ -636,11 +694,18 @@ function collectUserData() {
     // Aggregate new salary components
     const totalBonus = processedPeriods.reduce((sum, p) => sum + (p.bonus || 0), 0);
     const totalSpecialAllowance = processedPeriods.reduce((sum, p) => sum + (p.specialAllowance || 0), 0);
+    const totalCommission = processedPeriods.reduce((sum, p) => sum + (p.commission || 0), 0);
     const totalLTA = processedPeriods.reduce((sum, p) => sum + (p.ltaReceived || 0), 0);
     const totalTelephoneReimb = processedPeriods.reduce((sum, p) => sum + (p.telephoneReimb || 0), 0);
     const totalBooksReimb = processedPeriods.reduce((sum, p) => sum + (p.booksReimb || 0), 0);
     const totalConveyanceAllowance = processedPeriods.reduce((sum, p) => sum + (p.conveyanceAllowance || 0), 0);
     const totalDriverAllowance = processedPeriods.reduce((sum, p) => sum + (p.driverAllowance || 0), 0);
+    // Additional allowances (no UI but extracted)
+    const totalChildrenEdAllowance = processedPeriods.reduce((sum, p) => sum + (p.childrenEducationAllowance || 0), 0);
+    const totalHostelAllowance = processedPeriods.reduce((sum, p) => sum + (p.hostelAllowance || 0), 0);
+    const totalMealVouchers = processedPeriods.reduce((sum, p) => sum + (p.mealVouchers || 0), 0);
+    const totalPerquisites = processedPeriods.reduce((sum, p) => sum + (p.perquisitesValue || 0), 0);
+    const totalProfitsInLieu = processedPeriods.reduce((sum, p) => sum + (p.profitsInLieuOfSalary || 0), 0);
     
     return {
         // Personal Info
@@ -673,11 +738,18 @@ function collectUserData() {
         // New Salary Components (aggregated from periods)
         bonus: totalBonus,
         specialAllowance: totalSpecialAllowance,
+        commission: totalCommission,
         ltaReceived: totalLTA,
         telephoneReimb: totalTelephoneReimb,
         booksReimb: totalBooksReimb,
         conveyanceAllowance: totalConveyanceAllowance,
         driverAllowance: totalDriverAllowance,
+        // Additional extracted components (no UI but passed to calculators)
+        childrenEducationAllowance: totalChildrenEdAllowance,
+        hostelAllowance: totalHostelAllowance,
+        mealVouchers: totalMealVouchers,
+        perquisitesValue: totalPerquisites,
+        profitsInLieuOfSalary: totalProfitsInLieu,
         
         // 80C Investments (from dynamic list)
         investments80C: window.investments80C.filter(i => i.amount > 0),
@@ -1021,130 +1093,6 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
             </button>
         </div>
         
-        <!-- Income Breakdown -->
-        <div class="result-card">
-            <h3 class="result-title">💵 Income Breakdown</h3>
-            <div class="breakdown-item">
-                <span>Gross Salary</span>
-                <span>${TaxUtils.formatCurrency(userData.grossSalary)}</span>
-            </div>
-            ${userData.savingsInterest > 0 ? `
-            <div class="breakdown-item">
-                <span>+ Savings Interest</span>
-                <span>${TaxUtils.formatCurrency(userData.savingsInterest)}</span>
-            </div>` : ''}
-            ${userData.fdInterest > 0 ? `
-            <div class="breakdown-item">
-                <span>+ FD Interest</span>
-                <span>${TaxUtils.formatCurrency(userData.fdInterest)}</span>
-            </div>` : ''}
-            ${userData.dividendIncome > 0 ? `
-            <div class="breakdown-item">
-                <span>+ Dividend Income</span>
-                <span>${TaxUtils.formatCurrency(userData.dividendIncome)}</span>
-            </div>` : ''}
-            ${userData.rentalIncome > 0 ? `
-            <div class="breakdown-item">
-                <span>+ Rental Income (Net)</span>
-                <span>${TaxUtils.formatCurrency(userData.rentalIncome * 0.7)}</span>
-            </div>` : ''}
-            ${userData.agriculturalIncome > 0 ? `
-            <div class="breakdown-item" style="background: var(--color-success-bg); padding: 8px; border-radius: 4px;">
-                <span style="color: var(--color-success);">🌾 Agricultural (100% TAX-FREE)</span>
-                <span style="color: var(--color-success);">${TaxUtils.formatCurrency(userData.agriculturalIncome)}</span>
-            </div>` : ''}
-            <div class="breakdown-item breakdown-item--total">
-                <span>Gross Total Income</span>
-                <span>${TaxUtils.formatCurrency(newResult.grossIncome.total)}</span>
-            </div>
-        </div>
-        
-        <!-- Deductions Comparison -->
-        <div class="result-card">
-            <h3 class="result-title">📝 Deductions Comparison</h3>
-            <table style="width: 100%; font-size: 13px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--color-border);">
-                        <th style="text-align: left; padding: 8px;">Item</th>
-                        <th style="text-align: right; padding: 8px;">New</th>
-                        <th style="text-align: right; padding: 8px;">Old</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding: 8px;">Standard Deduction</td>
-                        <td style="text-align: right; padding: 8px;">₹75,000</td>
-                        <td style="text-align: right; padding: 8px;">₹50,000</td>
-                    </tr>
-                    ${oldResult.exemptions.hraExemption > 0 ? `
-                    <tr style="background: #fef3c7;">
-                        <td style="padding: 8px;">🏠 HRA Exemption (Sec 10(13A))</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px; color: #b45309; font-weight: 600;">${TaxUtils.formatCurrency(oldResult.exemptions.hraExemption)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80C > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">Section 80C</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80C)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80CCD1B > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80CCD(1B) - Extra NPS</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80CCD1B)}</td>
-                    </tr>` : ''}
-                    ${newResult.deductions.employerNPS > 0 || oldResult.deductions.section80CCD2 > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80CCD(2) - Employer NPS</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(newResult.deductions.employerNPS || 0)}</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80CCD2 || 0)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80D > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80D - Health Insurance</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80D)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section24b > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">Section 24(b) - Home Loan Interest</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section24b)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80E > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80E - Education Loan</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80E)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80EE > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80EE - Home Loan (Legacy)</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80EE)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80EEA > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80EEA - Affordable Housing</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80EEA)}</td>
-                    </tr>` : ''}
-                    ${oldResult.deductions.section80EEB > 0 ? `
-                    <tr>
-                        <td style="padding: 8px;">80EEB - EV Loan Interest</td>
-                        <td style="text-align: right; padding: 8px; color: var(--color-text-muted);">-</td>
-                        <td style="text-align: right; padding: 8px;">${TaxUtils.formatCurrency(oldResult.deductions.section80EEB)}</td>
-                    </tr>` : ''}
-                    <tr style="border-top: 2px solid var(--color-primary); font-weight: bold;">
-                        <td style="padding: 12px 8px;">Total Deductions</td>
-                        <td style="text-align: right; padding: 12px 8px;">${TaxUtils.formatCurrency(newResult.deductions.total)}</td>
-                        <td style="text-align: right; padding: 12px 8px;">${TaxUtils.formatCurrency(oldResult.deductions.total + oldResult.exemptions.total)}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
         <!-- Tax Calculation -->
         <div class="result-card">
             <h3 class="result-title">🧮 Tax Calculation</h3>
@@ -1212,27 +1160,27 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
         
         <!-- WHAT SAVED YOU MONEY - Dynamic based on better regime -->
         <div class="result-card" id="savingsCard" style="background: linear-gradient(to bottom right, #f0fff4, #e8f7f7); border: 2px solid var(--color-success);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 class="result-title" style="color: var(--color-success); margin: 0;">
-                    💚 What Saved You Money (<span id="displayedRegimeName">${betterRegime === 'new' ? 'New' : 'Old'}</span> Regime)
-                </h3>
-                <button id="toggleRegimeBtn" onclick="toggleDisplayedRegime()" style="
-                    background: linear-gradient(135deg, #dc2626, #b91c1c);
-                    color: white;
-                    border: none;
-                    padding: 6px 12px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                ">
-                    🔄 View ${betterRegime === 'new' ? 'Old' : 'New'} Regime
-                </button>
+            <h3 class="result-title" style="color: var(--color-success); margin: 0 0 12px 0;">
+                💚 What Saved You Money
+            </h3>
+            
+            <!-- Regime Toggle Pills (side-by-side) -->
+            <div class="regime-toggle-container" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <div class="regime-pill ${betterRegime === 'new' ? 'regime-pill--active' : 'regime-pill--inactive'}" 
+                     onclick="setDisplayedRegime('new')" data-regime="new" id="regimePillNew"
+                     style="padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s;
+                            ${betterRegime === 'new' ? 'background: #dcfce7; color: #166534; border: 2px solid #22c55e;' : 'background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; opacity: 0.7;'}">
+                    New Regime ${betterRegime === 'new' ? '✓' : ''}
+                </div>
+                <div class="regime-pill ${betterRegime === 'old' ? 'regime-pill--active' : 'regime-pill--inactive'}" 
+                     onclick="setDisplayedRegime('old')" data-regime="old" id="regimePillOld"
+                     style="padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s;
+                            ${betterRegime === 'old' ? 'background: #dcfce7; color: #166534; border: 2px solid #22c55e;' : 'background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; opacity: 0.7;'}">
+                    Old Regime ${betterRegime === 'old' ? '✓' : ''}
+                </div>
             </div>
-            <p style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px;">
+            
+            <p id="regimeDescription" style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 16px;">
                 ${betterRegime === 'new' 
                     ? 'The New Regime has lower tax for you. It offers a higher standard deduction (₹75K) but no other deductions.'
                     : 'These deductions and exemptions reduced your taxable income, saving you tax at your marginal rate (~30%).'}
@@ -1250,12 +1198,37 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
             </div>
         </div>
         
-        <!-- Detailed Log - Shows better regime by default, toggle for other -->
+        <!-- WHAT COULD SAVE MORE - Shows potential savings opportunities with regime toggle -->
+        <div class="result-card" id="potentialCard" style="background: linear-gradient(to bottom right, #fffbeb, #fff7ed); border: 2px solid #f97316;">
+            <h3 class="result-title" style="color: #ea580c; margin: 0 0 12px 0;">
+                💡 What Could Save More Money
+            </h3>
+            
+            <!-- Regime Toggle Pills for Potential Savings -->
+            <div class="potential-regime-toggle" style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <div class="potential-pill" onclick="setPotentialRegime('${betterRegime}')" data-regime="${betterRegime}" id="potentialPillBetter"
+                     style="padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s;
+                            background: #dcfce7; color: #166534; border: 2px solid #22c55e;">
+                    ${betterRegime === 'new' ? 'New' : 'Old'} Regime ✓ (Best)
+                </div>
+                <div class="potential-pill" onclick="setPotentialRegime('${betterRegime === 'new' ? 'old' : 'new'}')" data-regime="${betterRegime === 'new' ? 'old' : 'new'}" id="potentialPillOther"
+                     style="padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s;
+                            background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; opacity: 0.7;">
+                    ${betterRegime === 'new' ? 'Old' : 'New'} Regime
+                </div>
+            </div>
+            
+            <div id="potentialContent" style="display: block;">
+                ${generatePotentialSavings(betterRegime === 'new' ? newResult : oldResult, userData, betterRegime, betterRegime)}
+            </div>
+        </div>
+        
+        <!-- Detailed Log (collapsible) -->
         <div class="result-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h3 class="result-title" onclick="toggleLogSection()" style="cursor: pointer; margin: 0;">
                     📋 Detailed Calculation Log 
-                    <span id="logToggle" style="font-size: 14px;">▼</span>
+                    <span id="logToggle" style="font-size: 14px;">►</span>
                 </h3>
             </div>
             <div id="logContent" class="log-section" style="display: none; max-height: 400px; overflow-y: auto;">
@@ -1301,8 +1274,14 @@ function generateComparisonReport(newResult, oldResult, betterRegime, savings, u
 function generateSavingsBreakdown(result, regimeName) {
     const entries = result.log
         .filter(entry => entry.taxSaved && entry.taxSaved > 0)
-        .sort((a, b) => b.taxSaved - a.taxSaved)
-        .slice(0, 8);
+        .sort((a, b) => {
+            // Priority: wealth_building (GREEN) > expense_based (BLUE) > pure_donation (ORANGE) > neutral
+            const priority = { wealth_building: 0, expense_based: 1, pure_donation: 2, neutral: 3 };
+            const priorityDiff = (priority[a.deductionType] || 3) - (priority[b.deductionType] || 3);
+            if (priorityDiff !== 0) return priorityDiff;
+            return b.taxSaved - a.taxSaved; // Then by tax saved
+        })
+        .slice(0, 10);
     
     if (entries.length === 0) {
         if (regimeName === 'new') {
@@ -1317,16 +1296,17 @@ function generateSavingsBreakdown(result, regimeName) {
     }
     
     // Helper to get color scheme based on deduction type
+    // GREEN = Wealth Building, BLUE = Expense-Based, ORANGE = Donation
     const getTypeStyles = (type) => {
         switch(type) {
-            case 'investment':  // Green - you keep/grow this money
-                return { border: '#22c55e', bg: '#dcfce7', icon: '💰' };
-            case 'expense':     // Orange - you spent this money
-                return { border: '#f59e0b', bg: '#fef3c7', icon: '📤' };
-            case 'exemption':   // Blue - automatic benefit
-                return { border: '#3b82f6', bg: '#dbeafe', icon: '🎁' };
+            case 'wealth_building':  // GREEN - investments that grow your wealth
+                return { border: '#22c55e', bg: '#dcfce7', icon: '💰', label: 'Builds wealth' };
+            case 'expense_based':    // BLUE - expenses you'd pay anyway
+                return { border: '#3b82f6', bg: '#dbeafe', icon: '🏠', label: 'Expense-based saving' };
+            case 'pure_donation':    // ORANGE - money given away
+                return { border: '#f97316', bg: '#ffedd5', icon: '🎁', label: 'Donation benefit' };
             default:
-                return { border: 'var(--color-success)', bg: 'white', icon: '✓' };
+                return { border: '#6b7280', bg: '#f3f4f6', icon: '📋', label: '' };
         }
     };
     
@@ -1342,33 +1322,298 @@ function generateSavingsBreakdown(result, regimeName) {
                 <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 6px;">
                     <strong>Amount claimed:</strong> ${TaxUtils.formatCurrency(entry.amount)}${entry.limit ? ` (Limit: ${TaxUtils.formatCurrency(entry.limit)})` : ''}
                 </div>
-                <div style="font-size: 12px; color: #374151; margin-top: 4px;">
-                    ${entry.deductionType === 'investment' ? '💡 <em>This builds your wealth!</em>' : 
-                      entry.deductionType === 'expense' ? '💡 <em>Expense that reduces taxable income</em>' :
-                      entry.deductionType === 'exemption' ? '💡 <em>Automatic tax benefit</em>' : ''}
+                ${styles.label ? `<div style="font-size: 11px; color: ${styles.border}; margin-top: 4px; font-style: italic;">
+                    💡 ${styles.label}
+                </div>` : ''}
+            </div>
+        `}).join('')}
+    </div>`;
+}
+
+// Generate "What Could Save More" suggestions based on unexhausted limits
+// displayedRegime = which regime's potential savings to show
+function generatePotentialSavings(result, userData, betterRegime, displayedRegime = null) {
+    const suggestions = [];
+    const marginalRate = 0.30; // Assume 30% marginal tax rate
+    const regimeToShow = displayedRegime || betterRegime;
+    
+    // Use the appropriate result based on displayed regime
+    const regimeResult = regimeToShow === 'new' ? lastNewResult : lastOldResult;
+    if (!regimeResult) return '<p style="color: var(--color-text-secondary);">Calculate tax first to see suggestions.</p>';
+    
+    // Complete list of all deduction sections
+    const potentialDeductions = [
+        // GREEN - Wealth Building (show amounts)
+        {
+            section: 'Section 80C',
+            limit: 150000,
+            used: regimeResult.deductions?.section80C || 0,
+            type: 'wealth_building',
+            suggestion: 'Invest in PPF, ELSS, EPF, LIC, or NPS',
+            applicableRegime: 'old'
+        },
+        {
+            section: '80CCD(1B) - Extra NPS',
+            limit: 50000,
+            used: regimeResult.deductions?.section80CCD1B || 0,
+            type: 'wealth_building',
+            suggestion: 'Additional NPS contribution beyond 80C',
+            applicableRegime: 'old'
+        },
+        {
+            section: '80CCD(2) - Employer NPS',
+            limit: null, // % of salary
+            used: regimeResult.deductions?.section80CCD2 || regimeResult.deductions?.employerNPS || 0,
+            type: 'wealth_building',
+            suggestion: 'Ask employer to contribute to NPS (up to 14% of salary)',
+            applicableRegime: 'both',
+            showIfZero: true
+        },
+        
+        // BLUE - Expense Based (show amounts)
+        {
+            section: 'Section 80D - Health Insurance',
+            limit: 75000, // Self 25K + Parents 50K if senior
+            used: regimeResult.deductions?.section80D || 0,
+            type: 'expense_based',
+            suggestion: 'Health insurance for self & parents',
+            applicableRegime: 'old'
+        },
+        {
+            section: 'HRA Exemption',
+            limit: null,
+            used: regimeResult.exemptions?.hraExemption || 0,
+            type: 'expense_based',
+            suggestion: 'Submit rent receipts if paying rent',
+            applicableRegime: 'old',
+            showIfZero: (userData.rentPayments?.length > 0 || userData.hraReceived > 0)
+        },
+        {
+            section: '24(b) - Home Loan Interest',
+            limit: 200000,
+            used: regimeResult.deductions?.section24b || 0,
+            type: 'expense_based',
+            suggestion: 'Home loan interest for self-occupied property',
+            applicableRegime: 'old'
+        },
+        {
+            section: '80E - Education Loan',
+            limit: null, // No limit
+            used: regimeResult.deductions?.section80E || 0,
+            type: 'expense_based',
+            suggestion: 'Interest on education loan (no limit!)',
+            applicableRegime: 'old',
+            showIfZero: false
+        },
+        {
+            section: '80EEB - EV Loan Interest',
+            limit: 150000,
+            used: regimeResult.deductions?.section80EEB || 0,
+            type: 'expense_based',
+            suggestion: 'Electric vehicle loan interest',
+            applicableRegime: 'old'
+        },
+        {
+            section: '80DD - Dependent Disability',
+            limit: 125000, // Severe
+            used: regimeResult.deductions?.section80DD || 0,
+            type: 'expense_based',
+            suggestion: 'Care for dependent with disability',
+            applicableRegime: 'old',
+            showIfZero: false
+        },
+        {
+            section: '80U - Self Disability',
+            limit: 125000,
+            used: regimeResult.deductions?.section80U || 0,
+            type: 'expense_based',
+            suggestion: 'Claim if you have certified disability',
+            applicableRegime: 'old',
+            showIfZero: false
+        },
+        
+        // ORANGE - Donation (just suggest, no amounts)
+        {
+            section: '80G - Charitable Donations',
+            limit: null,
+            used: regimeResult.deductions?.section80G || 0,
+            type: 'pure_donation',
+            suggestion: 'Consider donating to approved charities',
+            applicableRegime: 'old',
+            showIfZero: true,
+            noAmountSuggestion: true
+        },
+        {
+            section: '80GGC - Political Donations',
+            limit: null,
+            used: regimeResult.deductions?.section80GGC || 0,
+            type: 'pure_donation',
+            suggestion: 'Consider supporting political parties (non-cash)',
+            applicableRegime: 'old',
+            showIfZero: true,
+            noAmountSuggestion: true
+        },
+        {
+            section: '80GGA - Research Donations',
+            limit: null,
+            used: regimeResult.deductions?.section80GGA || 0,
+            type: 'pure_donation',
+            suggestion: 'Consider scientific research donations',
+            applicableRegime: 'old',
+            showIfZero: true,
+            noAmountSuggestion: true
+        }
+    ];
+    
+    // Filter and process deductions
+    for (const deduction of potentialDeductions) {
+        // Skip if not applicable for displayed regime
+        if (deduction.applicableRegime === 'old' && regimeToShow === 'new') continue;
+        
+        const remaining = deduction.limit ? deduction.limit - deduction.used : 0;
+        
+        // For items with limits - show if not fully utilized
+        if (deduction.limit && remaining > 5000) {
+            const potentialSavings = remaining * marginalRate;
+            suggestions.push({
+                ...deduction,
+                remaining,
+                potentialSavings,
+                priority: deduction.type === 'wealth_building' ? 0 : (deduction.type === 'expense_based' ? 1 : 2)
+            });
+        } 
+        // For items without limit - show if zero and showIfZero is true
+        else if (!deduction.limit && deduction.used === 0 && deduction.showIfZero) {
+            suggestions.push({
+                ...deduction,
+                remaining: 0,
+                potentialSavings: 0,
+                isUnused: true,
+                priority: deduction.type === 'wealth_building' ? 0 : (deduction.type === 'expense_based' ? 1 : 2)
+            });
+        }
+    }
+    
+    // Sort by priority (GREEN first, then BLUE, then ORANGE)
+    suggestions.sort((a, b) => a.priority - b.priority);
+    
+    // Generate HTML
+    if (suggestions.length === 0) {
+        if (regimeToShow === 'new') {
+            return `<p style="text-align: center; color: var(--color-text-secondary); padding: 12px;">
+                🎉 <strong>New Regime doesn't have many deductions.</strong> Only Standard Deduction (₹75K) and Employer NPS.
+            </p>`;
+        }
+        return `<p style="text-align: center; color: var(--color-text-secondary); padding: 12px;">
+            ✅ Great job! You've maximized your available deductions.
+        </p>`;
+    }
+    
+    const getTypeStyles = (type) => {
+        switch(type) {
+            case 'wealth_building': return { border: '#22c55e', bg: '#dcfce7', icon: '💰' };
+            case 'expense_based': return { border: '#3b82f6', bg: '#dbeafe', icon: '🏠' };
+            case 'pure_donation': return { border: '#f97316', bg: '#ffedd5', icon: '🎁' };
+            default: return { border: '#6b7280', bg: '#f3f4f6', icon: '📋' };
+        }
+    };
+    
+    return `<div style="display: flex; flex-direction: column; gap: 10px;">
+        ${suggestions.slice(0, 8).map(s => {
+            const styles = getTypeStyles(s.type);
+            return `
+            <div style="background: ${styles.bg}; padding: 10px 12px; border-radius: 6px; border-left: 4px solid ${styles.border};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--color-text-primary);">${styles.icon} ${s.section}</strong>
+                    ${s.remaining > 0 && !s.noAmountSuggestion ? `<span style="color: ${styles.border}; font-weight: 600; font-size: 13px;">
+                        ~${TaxUtils.formatCurrency(s.potentialSavings)} potential
+                    </span>` : ''}
+                </div>
+                <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px;">
+                    ${s.noAmountSuggestion 
+                        ? `💡 ${s.suggestion}`
+                        : (s.isUnused 
+                            ? `⚠️ Not claimed - ${s.suggestion}` 
+                            : `Add ${TaxUtils.formatCurrency(s.remaining)} more → ${s.suggestion}`)}
                 </div>
             </div>
         `}).join('')}
     </div>`;
 }
 
-// Toggle to show OTHER regime's savings (swap view)
-function toggleDisplayedRegime() {
+// Set displayed regime for "What Could Save More" section
+function setPotentialRegime(regime) {
+    if (!lastNewResult || !lastOldResult || !lastUserData) return;
+    
+    const betterRegime = lastNewResult.finalTax <= lastOldResult.finalTax ? 'new' : 'old';
+    const result = regime === 'new' ? lastNewResult : lastOldResult;
+    
+    // Update potential savings content
+    document.getElementById('potentialContent').innerHTML = generatePotentialSavings(result, lastUserData, betterRegime, regime);
+    
+    // Update pill styles
+    const betterPill = document.getElementById('potentialPillBetter');
+    const otherPill = document.getElementById('potentialPillOther');
+    
+    if (betterPill && otherPill) {
+        const activeStyle = 'background: #dcfce7; color: #166534; border: 2px solid #22c55e; opacity: 1;';
+        const inactiveStyle = 'background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; opacity: 0.7;';
+        const baseStyle = 'padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; ';
+        
+        if (regime === betterRegime) {
+            betterPill.style.cssText = baseStyle + activeStyle;
+            otherPill.style.cssText = baseStyle + inactiveStyle;
+            betterPill.innerHTML = `${betterRegime === 'new' ? 'New' : 'Old'} Regime ✓ (Best)`;
+            otherPill.innerHTML = `${betterRegime === 'new' ? 'Old' : 'New'} Regime`;
+        } else {
+            betterPill.style.cssText = baseStyle + inactiveStyle;
+            otherPill.style.cssText = baseStyle + activeStyle;
+            betterPill.innerHTML = `${betterRegime === 'new' ? 'New' : 'Old'} Regime (Best)`;
+            otherPill.innerHTML = `${betterRegime === 'new' ? 'Old' : 'New'} Regime ✓`;
+        }
+    }
+}
+
+// Set displayed regime based on pill click (for "What Saved You Money" section)
+function setDisplayedRegime(regime) {
     if (!lastNewResult || !lastOldResult) return;
     
-    const currentRegime = document.getElementById('displayedRegimeName').textContent;
     const betterRegime = lastNewResult.finalTax <= lastOldResult.finalTax ? 'new' : 'old';
+    const result = regime === 'new' ? lastNewResult : lastOldResult;
     
-    // Determine which regime to show
-    const showingBetter = (currentRegime === 'New' && betterRegime === 'new') || 
-                          (currentRegime === 'Old' && betterRegime === 'old');
-    const newRegimeToShow = showingBetter ? (betterRegime === 'new' ? 'old' : 'new') : betterRegime;
-    const result = newRegimeToShow === 'new' ? lastNewResult : lastOldResult;
+    // Update savings breakdown content
+    document.getElementById('savingsBreakdown').innerHTML = generateSavingsBreakdown(result, regime);
     
-    // Update display
-    document.getElementById('displayedRegimeName').textContent = newRegimeToShow === 'new' ? 'New' : 'Old';
-    document.getElementById('savingsBreakdown').innerHTML = generateSavingsBreakdown(result, newRegimeToShow);
-    document.getElementById('toggleRegimeBtn').innerHTML = `🔄 View ${newRegimeToShow === 'new' ? 'Old' : 'New'} Regime`;
+    // Update description based on selected regime
+    const descEl = document.getElementById('regimeDescription');
+    if (descEl) {
+        descEl.textContent = regime === 'new' 
+            ? 'The New Regime has lower tax for you. It offers a higher standard deduction (₹75K) but no other deductions.'
+            : 'These deductions and exemptions reduced your taxable income, saving you tax at your marginal rate (~30%).';
+    }
+    
+    // Update pill styles
+    const newPill = document.getElementById('regimePillNew');
+    const oldPill = document.getElementById('regimePillOld');
+    
+    if (newPill && oldPill) {
+        // Active pill (selected one) - green with checkmark
+        const activeStyle = 'background: #dcfce7; color: #166534; border: 2px solid #22c55e; opacity: 1;';
+        // Inactive pill - muted red
+        const inactiveStyle = 'background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; opacity: 0.7;';
+        
+        if (regime === 'new') {
+            newPill.style.cssText = 'padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; ' + activeStyle;
+            oldPill.style.cssText = 'padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; ' + inactiveStyle;
+            newPill.innerHTML = 'New Regime ✓';
+            oldPill.innerHTML = 'Old Regime';
+        } else {
+            newPill.style.cssText = 'padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; ' + inactiveStyle;
+            oldPill.style.cssText = 'padding: 10px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; text-align: center; transition: all 0.2s; ' + activeStyle;
+            newPill.innerHTML = 'New Regime';
+            oldPill.innerHTML = 'Old Regime ✓';
+        }
+    }
 }
 
 // Toggle other regime log visibility
@@ -1673,8 +1918,9 @@ window.closeBreakdownModal = closeBreakdownModal;
 
 // Expose toggle functions globally
 window.toggleLogSection = toggleLogSection;
-window.toggleDisplayedRegime = toggleDisplayedRegime;
+window.setDisplayedRegime = setDisplayedRegime;
 window.toggleOtherRegimeLog = toggleOtherRegimeLog;
+window.setPotentialRegime = setPotentialRegime;
 window.generateSavingsBreakdown = generateSavingsBreakdown;
 
 // ============================================

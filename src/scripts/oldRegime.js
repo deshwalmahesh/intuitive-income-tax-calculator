@@ -209,7 +209,7 @@ class OldRegimeCalculator {
                 50000,
                 'Automatic ₹50,000 deduction for salaried individuals under Old Regime.',
                 breakdown.standardDeduction * 0.30,
-                'exemption'  // Blue - automatic benefit
+                'expense_based'  // Blue - expense you'd pay anyway
             );
         } else {
             breakdown.standardDeduction = 0;
@@ -227,7 +227,9 @@ class OldRegimeCalculator {
                 'Family Pension Deduction',
                 breakdown.familyPensionDeduction,
                 15000,
-                `Least of ₹15,000 or 1/3rd of pension (${TaxUtils.formatCurrency(familyPension / 3)})`
+                `Least of ₹15,000 or 1/3rd of pension (${TaxUtils.formatCurrency(familyPension / 3)})`,
+                breakdown.familyPensionDeduction * 0.30,
+                'expense_based'  // Blue - pension income benefit
             );
         } else {
             breakdown.familyPensionDeduction = 0;
@@ -242,7 +244,9 @@ class OldRegimeCalculator {
                 'Professional Tax',
                 professionalTax,
                 null,
-                'Actual professional tax paid to state government. Fully deductible.'
+                'Actual professional tax paid to state government. Fully deductible.',
+                professionalTax * 0.30,
+                'expense_based'  // Blue - mandatory expense
             );
         }
         
@@ -521,7 +525,8 @@ class OldRegimeCalculator {
                 `Annual HRA: ${TaxUtils.formatCurrency(totalHRAReceivedCalc)} | ` +
                 `Total Exemption: ${TaxUtils.formatCurrency(totalHRAExemption)}. ` +
                 `City: ${distinctRegions}.`,
-                totalHRAExemption * 0.30
+                totalHRAExemption * 0.30,
+                'expense_based'  // Blue - rent you'd pay anyway
             );
         } else {
             // Log why no exemption

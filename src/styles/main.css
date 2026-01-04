@@ -210,6 +210,27 @@ body {
   background: linear-gradient(to right, var(--color-primary-bg) 0%, var(--color-bg-secondary) 100%);
 }
 
+/* ========================
+   DEDUCTION CATEGORY COLORS
+   ======================== */
+/* GREEN - Wealth Building (80C, NPS) - investments that grow */
+.section--wealth-building {
+  border-left: 4px solid #22c55e;
+  background: linear-gradient(to right, #f0fdf4 0%, var(--color-bg-secondary) 100%);
+}
+
+/* BLUE - Expense Based (80D, HRA, Loans) - money you'd spend anyway */
+.section--expense-based {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(to right, #eff6ff 0%, var(--color-bg-secondary) 100%);
+}
+
+/* ORANGE - Pure Donation (80G, 80GGC, 80GGA) - only tax benefit */
+.section--donation {
+  border-left: 4px solid #f97316;
+  background: linear-gradient(to right, #fff7ed 0%, var(--color-bg-secondary) 100%);
+}
+
 .section-header {
   display: flex;
   align-items: center;

@@ -491,6 +491,47 @@ const TAX_CONFIG = {
     },
 
     // ============================================
+    // DEDUCTION CATEGORIES - For UI Color Coding
+    // GREEN = Wealth Building (your money grows)
+    // BLUE = Expense Based (money you'd spend anyway)
+    // ORANGE = Pure Donation (money given away)
+    // ============================================
+    deductionCategories: {
+        wealth_building: {
+            color: '#22c55e',
+            bgColor: '#dcfce7',
+            lightBg: '#f0fdf4',
+            icon: '💰',
+            label: 'Wealth Building',
+            description: 'This money builds your future wealth while saving tax'
+        },
+        expense_based: {
+            color: '#3b82f6',
+            bgColor: '#dbeafe',
+            lightBg: '#eff6ff',
+            icon: '🏠',
+            label: 'Expense-Based',
+            description: 'Expenses that also reduce your taxable income'
+        },
+        pure_donation: {
+            color: '#f97316',
+            bgColor: '#ffedd5',
+            lightBg: '#fff7ed',
+            icon: '🎁',
+            label: 'Donation',
+            description: 'Money donated that reduces taxable income'
+        },
+        neutral: {
+            color: '#6b7280',
+            bgColor: '#f3f4f6',
+            lightBg: '#f9fafb',
+            icon: '📋',
+            label: 'Other',
+            description: ''
+        }
+    },
+
+    // ============================================
     // EXEMPTIONS - Section 10
     // ============================================
     exemptions: {

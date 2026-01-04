@@ -55,7 +55,7 @@ function calculate80GGA(userData) {
                 null,
                 `100% deduction for donations to approved scientific research institutions.`,
                 total * 0.30,
-                'expense'
+                'pure_donation'  // Orange - money donated away
             );
         }
 
@@ -81,7 +81,7 @@ function calculate80GGC(userData) {
                     null,
                     `Cash donation of ${TaxUtils.formatCurrency(donation.amount)} to political party is NOT allowed. Must be via cheque/online.`,
                     0,
-                    'expense'
+                    'pure_donation'  // Orange - donation
                 );
                 continue;
             }
@@ -96,7 +96,7 @@ function calculate80GGC(userData) {
                 null,
                 `100% deduction for non-cash donations to registered political parties.`,
                 total * 0.30,
-                'expense'
+                'pure_donation'  // Orange - money donated to party
             );
         }
         
@@ -122,7 +122,8 @@ function calculateInterestDeduction(userData, ageCategory) {
                     deduction,
                     ttbConfig.maxLimit,
                     `Senior citizens: ALL interest (savings + FD + RD) deductible up to ₹50,000.`,
-                    deduction * 0.30
+                    deduction * 0.30,
+                    'expense_based'  // Blue - interest you'd earn anyway
                 );
             }
             
@@ -139,7 +140,8 @@ function calculateInterestDeduction(userData, ageCategory) {
                     deduction,
                     ttaConfig.maxLimit,
                     `Non-seniors: Only SAVINGS account interest deductible, up to ₹10,000. FD interest NOT included.`,
-                    deduction * 0.30
+                    deduction * 0.30,
+                    'expense_based'  // Blue - interest income
                 );
             }
             
@@ -166,7 +168,9 @@ function calculate80GGDeductions(userData, grossTotalIncome) {
             'Rent Deduction (No HRA)',
             deduction,
             ggConfig.yearlyMax,
-            `For those NOT receiving HRA. Least of: ₹60K/year, 25% of income, or (Rent - 10% income). Form 10BA required.`
+            `For those NOT receiving HRA. Least of: ₹60K/year, 25% of income, or (Rent - 10% income). Form 10BA required.`,
+            deduction * 0.30,
+            'expense_based'  // Blue - rent you'd pay anyway
         );
         
         return deduction;
@@ -211,7 +215,7 @@ function calculate80GDeductions(userData, grossTotalIncome) {
                     gConfig.cashLimit,
                     `Cash donation of ${TaxUtils.formatCurrency(amount)} exceeds ₹2,000 limit. NOT ELIGIBLE for deduction. Use cheque/online.`,
                     0,
-                    'expense'
+                    'pure_donation'  // Orange
                 );
                 continue;
             }
@@ -277,7 +281,7 @@ function calculate80GDeductions(userData, grossTotalIncome) {
                 null,
                 explanation,
                 totalDeduction * 0.30,
-                'expense'
+                'pure_donation'  // Orange - money donated to charity
             );
         }
         
@@ -314,7 +318,8 @@ function calculate80DDeductions(userData, ageCategory) {
                 total,
                 selfLimit + parentsLimit,
                 `Self/Family: ${TaxUtils.formatCurrency(selfDeduction)} (limit ${TaxUtils.formatCurrency(selfLimit)}). Parents: ${TaxUtils.formatCurrency(parentsDeduction)} (limit ${TaxUtils.formatCurrency(parentsLimit)}). Preventive checkup included within limits.`,
-                total * 0.30
+                total * 0.30,
+                'expense_based'  // Blue - health expense you'd pay anyway
             );
         }
         
@@ -425,7 +430,8 @@ function calculate80CDeductions(userData) {
                 cappedTotal,
                 maxLimit,
                 `Combined investments: ${itemsList}. Total: ${TaxUtils.formatCurrency(total)}, Capped at: ${TaxUtils.formatCurrency(maxLimit)}.`,
-                cappedTotal * 0.30
+                cappedTotal * 0.30,
+                'wealth_building'  // Green - investments that grow your wealth
             );
         }
         
@@ -462,7 +468,7 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 50000,
                 'EXTRA ₹50,000 deduction for NPS Tier-1, OVER AND ABOVE the 80C limit. Maximum savings!',
                 breakdown.section80CCD1B * 0.30,
-                'investment'  // Green - builds retirement corpus
+                'wealth_building'  // Green - builds retirement corpus
             );
         }
         
@@ -486,7 +492,7 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 maxEmployerNPS,
                 `Employer's NPS contribution. Limit: ${TaxUtils.formatPercent(maxEmployerPercent)} of Basic+DA for ${employerType} employees. NO overall cap!`,
                 breakdown.section80CCD2 * 0.30,
-                'investment'  // Green - builds retirement corpus
+                'wealth_building'  // Green - builds retirement corpus
             );
         }
         
@@ -508,7 +514,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'Dependent with Disability',
                 ddLimit,
                 null,
-                `Flat deduction for maintaining disabled dependent. ${dependentDisability === '80plus' ? 'Severe (80%+)' : 'Normal (40-79%)'} disability: ${TaxUtils.formatCurrency(ddLimit)}.`
+                `Flat deduction for maintaining disabled dependent. ${dependentDisability === '80plus' ? 'Severe (80%+)' : 'Normal (40-79%)'} disability: ${TaxUtils.formatCurrency(ddLimit)}.`,
+                ddLimit * 0.30,
+                'expense_based'  // Blue - expense for dependent care
             );
         } else {
             breakdown.section80DD = 0;
@@ -527,7 +535,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'Specified Disease Treatment',
                 breakdown.section80DDB,
                 ddbLimit,
-                `Treatment for neurological diseases, cancer, AIDS, renal failure, etc. Limit: ${TaxUtils.formatCurrency(ddbLimit)} for your age. Requires specialist prescription.`
+                `Treatment for neurological diseases, cancer, AIDS, renal failure, etc. Limit: ${TaxUtils.formatCurrency(ddbLimit)} for your age. Requires specialist prescription.`,
+                breakdown.section80DDB * 0.30,
+                'expense_based'  // Blue - medical expense
             );
         } else {
             breakdown.section80DDB = 0;
@@ -546,7 +556,8 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 educationLoanInterest,
                 null,
                 'UNLIMITED deduction for education loan interest! Available for 8 years from first repayment. For self, spouse, or children.',
-                educationLoanInterest * 0.30
+                educationLoanInterest * 0.30,
+                'expense_based'  // Blue - education expense
             );
         }
 
@@ -563,7 +574,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'Home Loan Interest (Legacy)',
                 breakdown.section80EE,
                 eeLimit,
-                `Additional deduction for loans sanctioned FY 16-17. Max ₹50,000.`
+                `Additional deduction for loans sanctioned FY 16-17. Max ₹50,000.`,
+                breakdown.section80EE * 0.30,
+                'expense_based'  // Blue - home loan expense
             );
         } else {
             breakdown.section80EE = 0;
@@ -593,7 +606,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                     'Affordable Housing Interest',
                     breakdown.section80EEA,
                     eeaLimit,
-                    `Additional deduction for affordable housing loans sanctioned FY 19-22. Max ₹1.5L.`
+                    `Additional deduction for affordable housing loans sanctioned FY 19-22. Max ₹1.5L.`,
+                    breakdown.section80EEA * 0.30,
+                    'expense_based'  // Blue - home loan expense
                 );
             }
         } else {
@@ -613,7 +628,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'EV Loan Interest (Legacy)',
                 breakdown.section80EEB,
                 eebLimit,
-                `Interest on Electric Vehicle Loan. Max ₹1.5L. Valid for loans sanctioned Apr'19-Mar'23.`
+                `Interest on Electric Vehicle Loan. Max ₹1.5L. Valid for loans sanctioned Apr'19-Mar'23.`,
+                breakdown.section80EEB * 0.30,
+                'expense_based'  // Blue - vehicle loan expense
             );
         } else {
             breakdown.section80EEB = 0;
@@ -631,7 +648,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'Agniveer Corpus Contribution',
                 breakdown.section80CCH,
                 null,
-                'Full deduction for contribution to Agniveer Corpus Fund (Self + Govt).'
+                'Full deduction for contribution to Agniveer Corpus Fund (Self + Govt).',
+                breakdown.section80CCH * 0.30,
+                'pure_donation'  // Orange - user doesn't gain directly, only tax benefit
             );
         } else {
             breakdown.section80CCH = 0;
@@ -645,15 +664,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
         // =====================
         // SECTION 80GGC - Political Party Donations
         // =====================
-        // =====================
-        // SECTION 80GGC - Political Party Donations
-        // =====================
         // Now handled by internal calculation from raw donations list
         breakdown.section80GGC = this.calculate80GGC(userData);
         
-        // =====================
-        // SECTION 80GGA - Scientific Research/Rural Development
-        // =====================
         // =====================
         // SECTION 80GGA - Scientific Research/Rural Development
         // =====================
@@ -687,7 +700,9 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 'Self with Disability',
                 uLimit,
                 null,
-                `Flat deduction if you have certified disability. ${selfDisability === '80plus' ? 'Severe (80%+)' : 'Normal (40-79%)'}: ${TaxUtils.formatCurrency(uLimit)}.`
+                `Flat deduction if you have certified disability. ${selfDisability === '80plus' ? 'Severe (80%+)' : 'Normal (40-79%)'}: ${TaxUtils.formatCurrency(uLimit)}.`,
+                uLimit * 0.30,
+                'expense_based'  // Blue - expense for self disability care
             );
         } else {
             breakdown.section80U = 0;
@@ -711,7 +726,8 @@ function calculateDeductions(userData, ageCategory, grossTotalIncome) {
                 isLetOut 
                     ? `Let-out property: UNLIMITED interest deduction (${TaxUtils.formatCurrency(homeLoanInterest)}).`
                     : `Self-occupied property: Max ₹2,00,000 deduction. Interest paid: ${TaxUtils.formatCurrency(homeLoanInterest)}.`,
-                breakdown.section24b * 0.30
+                breakdown.section24b * 0.30,
+                'expense_based'  // Blue - home loan expense you'd pay anyway
             );
         } else {
             breakdown.section24b = 0;

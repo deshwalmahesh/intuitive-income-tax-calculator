@@ -37,16 +37,27 @@ function addEmploymentPeriod() {
         hraReceived: 0,
         epfContribution: 0,
         employerNPSContribution: 0,
-        // New salary components
+        // Variable components
         bonus: 0,
         specialAllowance: 0,
+        commission: 0,
+        // Reimbursements & Benefits
         ltaReceived: 0,
         telephoneReimb: 0,
         booksReimb: 0,
         conveyanceAllowance: 0,
-        driverAllowance: 0
+        driverAllowance: 0,
+        // Allowances (extracted but may not have UI yet)
+        childrenEducationAllowance: 0,
+        hostelAllowance: 0,
+        uniformAllowance: 0,
+        mealVouchers: 0,
+        // Perquisites
+        perquisitesValue: 0,
+        profitsInLieuOfSalary: 0
     };
     employmentPeriods.push(entry);
+    window.employmentPeriods = employmentPeriods;  // Keep window reference in sync
     
     const html = `
         <div class="employment-period-card" id="${id}" style="border: 1px solid var(--color-border); border-radius: 8px; padding: 16px; margin-bottom: 16px; background: var(--color-bg-secondary);">
@@ -213,7 +224,10 @@ function updateEmploymentPeriod(id, field, value) {
     const numericFields = [
         'grossSalary', 'basicPlusDA', 'hraReceived', 'epfContribution', 'employerNPSContribution',
         'startMonth', 'endMonth', 'startYear', 'endYear',
-        'bonus', 'specialAllowance', 'ltaReceived', 'telephoneReimb', 'booksReimb', 'conveyanceAllowance', 'driverAllowance'
+        'bonus', 'specialAllowance', 'commission', 'ltaReceived', 'telephoneReimb', 'booksReimb', 
+        'conveyanceAllowance', 'driverAllowance',
+        'childrenEducationAllowance', 'hostelAllowance', 'uniformAllowance', 'mealVouchers',
+        'perquisitesValue', 'profitsInLieuOfSalary'
     ];
     if (numericFields.includes(field)) {
         value = parseFloat(value) || 0;
@@ -237,6 +251,7 @@ function updateEmploymentPeriod(id, field, value) {
  */
 function removeEmploymentPeriod(id) {
     employmentPeriods = employmentPeriods.filter(p => p.id !== id);
+    window.employmentPeriods = employmentPeriods;  // Keep window reference in sync
     const element = document.getElementById(id);
     if (element) element.remove();
     
@@ -341,6 +356,7 @@ function addInvestment80C() {
         amount: 0
     };
     investments80C.push(entry);
+    window.investments80C = investments80C;  // Keep window reference in sync
     
     const html = `
         <div class="dynamic-entry" id="${id}">
@@ -371,6 +387,7 @@ function updateInvestment80C(id, field, value) {
 
 function removeInvestment80C(id) {
     investments80C = investments80C.filter(i => i.id !== id);
+    window.investments80C = investments80C;  // Keep window reference in sync
     const element = document.getElementById(id);
     if (element) element.remove();
     updateTotal80C();
@@ -435,6 +452,7 @@ function addDonation() {
         paymentMode: 'online'
     };
     donations.push(entry);
+    window.donations = donations;  // Keep window reference in sync
     
     const html = `
         <div class="dynamic-entry" id="${id}" style="grid-template-columns: 1fr 100px 100px auto;">
@@ -470,6 +488,7 @@ function updateDonation(id, field, value) {
 
 function removeDonation(id) {
     donations = donations.filter(d => d.id !== id);
+    window.donations = donations;  // Keep window reference in sync
     const element = document.getElementById(id);
     if (element) element.remove();
     

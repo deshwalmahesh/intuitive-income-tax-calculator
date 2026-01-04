@@ -231,7 +231,7 @@ class NewRegimeCalculator {
                 75000,
                 'Automatic ₹75,000 deduction for salaried individuals under New Regime (Budget 2025).',
                 this.estimateTaxSaved(breakdown.standardDeduction, 0.30),
-                'exemption'  // Blue - automatic benefit
+                'expense_based'  // Blue - automatic benefit
             );
         } else {
             breakdown.standardDeduction = 0;
@@ -274,7 +274,7 @@ class NewRegimeCalculator {
                 maxEmployerNPS,
                 `Employer's NPS contribution up to 14% of Basic+DA (${TaxUtils.formatCurrency(basicDA)}). This is the ONLY major deduction in New Regime!`,
                 this.estimateTaxSaved(breakdown.employerNPS, 0.30),
-                'investment'  // Green - builds retirement corpus
+                'wealth_building'  // Green - builds retirement corpus
             );
         } else {
             breakdown.employerNPS = 0;

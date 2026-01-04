@@ -128,7 +128,7 @@
           </div>
 
           <!-- SECTION: Employment Periods (Salary & Income) -->
-          <div class="section section--savings" id="section-employment">
+          <div class="section" id="section-employment">
             <div class="section-header" onclick="toggleSection('employment')">
               <span class="section-icon">💼</span>
               <h2 class="section-title">Employment & Salary Details</h2>
@@ -179,312 +179,12 @@
                   </div>
                 </div>
               </div>
-
-              <!-- ═══════════════════════════════════════════════════ -->
-              <!-- SUBSECTION: HRA / Rent -->
-              <!-- ═══════════════════════════════════════════════════ -->
-              <div class="old-regime-only" style="margin-top: 24px; padding: 16px; border-top: 2px solid var(--color-border); background: var(--color-bg-secondary); border-radius: 8px;">
-                <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 600; color: var(--color-warning); display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 18px;">🏠</span> HRA Exemption (Old Regime Only)
-                </h3>
-                
-                <div id="rentSection" style="width: 100%;">
-                    <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span>Rent Paid (for HRA Exemption)</span>
-                        <button class="add-entry-btn--small" onclick="addRentPayment()">➕ Add Rent Period</button>
-                    </label>
-                    <p class="help-text" style="margin-bottom: 12px;">
-                        <span class="info-icon">i</span>
-                        Add separate entries if rent changed or you moved cities.
-                    </p>
-                    
-                    <div id="rentPaymentsContainer" style="width: 100%;">
-                        <!-- Dynamic Rent Payments -->
-                    </div>
-                    <button class="add-entry-btn" onclick="addRentPayment()" style="margin-top: 8px;">➕ Add Rent Period</button>
-                </div>
-              </div>
-
-              <p class="law-ref">Standard Deduction: ₹75,000 (New Regime) / ₹50,000 (Old Regime). HRA Exemption calculated per employment period.</p>
+              <p class="law-ref">Standard Deduction: ₹75,000 (New Regime) / ₹50,000 (Old Regime). Professional Tax deductible in Old Regime only.</p>
             </div>
           </div>
 
-          <!-- SECTION: 80C Investments (Old Regime Only) -->
-          <div class="section section--savings old-regime-only" id="section-80c">
-            <div class="section-header" onclick="toggleSection('80c')">
-              <span class="section-icon">📈</span>
-              <h2 class="section-title">Tax-Saving Investments (Section 80C - ₹1.5L Limit)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-80c">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-80c">
-              <p class="help-text" style="margin-bottom: 16px">
-                <span class="info-icon">i</span>
-                All 80C investments share a combined ₹1,50,000 limit. EPF contribution (above) counts here too.
-              </p>
-
-              <div class="dynamic-entries" id="investments80c">
-                <!-- Dynamic investment entries will be added here -->
-              </div>
-
-              <button class="add-entry-btn" onclick="addInvestment80C()">➕ Add Investment</button>
-
-              <div id="total80c" style="margin-top: 16px; padding: 12px; background: var(--color-bg-tertiary); border-radius: 4px">
-                <strong>Total 80C:</strong>
-                <span id="total80cAmount">₹0</span>
-                / ₹1,50,000
-                <div id="remaining80c" class="help-text" style="margin-top: 4px">Remaining limit: ₹1,50,000</div>
-              </div>
-              
-              <!-- EPF Display (Auto-calculated) -->
-              <div id="epf80cRow" style="margin-top: 12px; padding: 12px; border: 1px dashed var(--color-border); border-radius: 4px; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong style="font-size: 13px;">Employee Provident Fund (EPF)</strong>
-                        <div style="font-size: 11px; color: var(--color-text-secondary);">From Salary (Auto-added to 80C)</div>
-                    </div>
-                    <span id="epf80cAmount" style="font-weight: 600; color: var(--color-primary);">₹0</span>
-                </div>
-              </div>
-
-              <p class="law-ref">Section 80C: PPF, ELSS, LIC, NSC, SCSS, Tuition Fees, Home Loan Principal, Sukanya Samriddhi, Tax-Saver FD, etc.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: NPS -->
-          <div class="section section--savings" id="section-nps">
-            <div class="section-header" onclick="toggleSection('nps')">
-              <span class="section-icon">🏦</span>
-              <h2 class="section-title">National Pension System (NPS)</h2>
-              <span class="section-badge section-badge--common">Both Regimes</span>
-              <button class="section-toggle collapsed" id="toggle-nps">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-nps">
-              <div class="form-row">
-                <div class="form-group old-regime-only">
-                  <label for="npsContribution">Your NPS Tier-1 Contribution (₹)</label>
-                  <input type="number" id="npsContribution" placeholder="e.g., 50000" value="0" min="0" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    80CCD(1): Within 80C pool, max 10% of salary. Old Regime only.
-                  </p>
-                </div>
-                <div class="form-group old-regime-only">
-                  <label for="npsExtraContribution">Additional NPS - 80CCD(1B) (₹)</label>
-                  <input type="number" id="npsExtraContribution" placeholder="e.g., 50000" value="0" min="0" max="50000" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    EXTRA ₹50,000 over 80C limit! Only for NPS Tier-1. Old Regime only.
-                  </p>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="employerNPSContribution">Employer's NPS Contribution (₹)</label>
-                <input type="number" id="employerNPSContribution" placeholder="e.g., 84000" value="0" min="0" />
-                <p class="help-text">
-                  <span class="info-icon">i</span>
-                  80CCD(2): Available in BOTH regimes! Limit: 14% of Basic+DA (New Regime for all), 10%/14% (Old Regime private/govt).
-                </p>
-              </div>
-              <p class="law-ref">Section 80CCD: NPS has 3 buckets - (1) Your contribution (80C pool), (1B) Extra ₹50K, (2) Employer (14% of Basic+DA in New, 10-14% in Old).</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Health Insurance (80D) -->
-          <div class="section section--savings old-regime-only" id="section-80d">
-            <div class="section-header" onclick="toggleSection('80d')">
-              <span class="section-icon">🏥</span>
-              <h2 class="section-title">Health Insurance Premiums (Section 80D)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-80d">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-80d">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="healthInsuranceSelf">Self + Family Premium (₹/year)</label>
-                  <input type="number" id="healthInsuranceSelf" placeholder="e.g., 25000" value="0" min="0" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    Premium for self, spouse, dependent children. Max ₹25K (<60) or ₹50K (senior).
-                  </p>
-                </div>
-                <div class="form-group">
-                  <label for="healthInsuranceParents">Parents' Premium (₹/year)</label>
-                  <input type="number" id="healthInsuranceParents" placeholder="e.g., 50000" value="0" min="0" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    Premium for parents. Max ₹25K (parents <60) or ₹50K (parents 60+).
-                  </p>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="parentsAgeCategory">Parents' Age</label>
-                  <select id="parentsAgeCategory">
-                    <option value="below60">Parents below 60 years</option>
-                    <option value="60to80">Parents 60+ years (Senior)</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="preventiveCheckup">Preventive Health Checkup (₹)</label>
-                  <input type="number" id="preventiveCheckup" placeholder="e.g., 5000" value="0" min="0" max="5000" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    Up to ₹5,000 (included in above limits, not extra). Cash payment allowed.
-                  </p>
-                </div>
-              </div>
-              <p class="law-ref">Section 80D: Max ₹25K self (<60), ₹50K (senior). Same for parents. Total up to ₹1L if all are seniors.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Home Loan -->
-          <div class="section section--savings old-regime-only" id="section-homeloan">
-            <div class="section-header" onclick="toggleSection('homeloan')">
-              <span class="section-icon">🏡</span>
-              <h2 class="section-title">Home Loan Deductions (Section 24b)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-homeloan">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-homeloan">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="homeLoanInterest">Home Loan Interest Paid (₹/year)</label>
-                  <input type="number" id="homeLoanInterest" placeholder="e.g., 200000" value="0" min="0" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    Section 24(b): Max ₹2L for self-occupied property. Unlimited for let-out.
-                  </p>
-                </div>
-                <div class="form-group">
-                  <label for="homeLoanPrincipal">Home Loan Principal Paid (₹/year)</label>
-                  <input type="number" id="homeLoanPrincipal" placeholder="e.g., 100000" value="0" min="0" />
-                  <p class="help-text">
-                    <span class="info-icon">i</span>
-                    Part of 80C pool. Principal repayment is deductible under 80C.
-                  </p>
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" id="isPropertyLetOut" />
-                  <span>Property is rented out (Let-Out property)</span>
-                </label>
-                <p class="help-text">
-                  <span class="info-icon">i</span>
-                  If let-out, there's NO limit on interest deduction, but rental income is taxable.
-                </p>
-              </div>
-              <p class="law-ref">Section 24(b) for Interest, Section 80C for Principal. New Regime: NO home loan interest deduction.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Education Loan (80E) -->
-          <!-- SECTION: Legacy Home Loan (80EE / 80EEA) -->
-          <div class="section section--savings old-regime-only" id="section-legacy-home">
-            <div class="section-header" onclick="toggleSection('legacy-home')">
-              <span class="section-icon">🏠</span>
-              <h2 class="section-title">First-Time Home Buyer Benefits (Section 80EE/80EEA)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-legacy-home">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-legacy-home">
-              
-              <!-- 80EE -->
-              <div class="form-group" style="margin-bottom: 16px;">
-                 <label for="section80EEInterest">Interest u/s 80EE (FY 16-17 Loans)</label>
-                 <input type="number" id="section80EEInterest" placeholder="Max ₹50,000" value="0" min="0" />
-                 <p class="help-text">
-                   <span class="info-icon">i</span>
-                   Extra deduction up to ₹50,000 over 24(b). Loans sanctioned Apr 1, 2016 - Mar 31, 2017.
-                 </p>
-              </div>
-
-              <!-- 80EEA -->
-              <div class="form-group">
-                 <label for="section80EEAInterest">Interest u/s 80EEA (FY 19-22 Loans)</label>
-                 <input type="number" id="section80EEAInterest" placeholder="Max ₹1,50,000" value="0" min="0" />
-                 <p class="help-text">
-                   <span class="info-icon">i</span>
-                   Extra deduction up to ₹1.5L over 24(b). Loans sanctioned Apr 1, 2019 - Mar 31, 2022. Property value < ₹45L.
-                 </p>
-              </div>
-              
-              <p class="law-ref">Note: You cannot claim both 80EE and 80EEA. Claim only if 24(b) limit is exhausted.</p>
-            </div>
-          </div>
-
-          <div class="section section--savings old-regime-only" id="section-80e">
-            <div class="section-header" onclick="toggleSection('80e')">
-              <span class="section-icon">🎓</span>
-              <h2 class="section-title">Education Loan Interest (Section 80E)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-80e">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-80e">
-              <div class="form-group">
-                <label for="educationLoanInterest">Education Loan Interest Paid (₹/year)</label>
-                <input type="number" id="educationLoanInterest" placeholder="e.g., 100000" value="0" min="0" />
-                <p class="help-text">
-                  <span class="info-icon">i</span>
-                  UNLIMITED deduction! Available for 8 years from first repayment. For self, spouse, or children.
-                </p>
-              </div>
-              <p class="law-ref">Section 80E: Interest on loan for higher education. Must be from recognized financial institution.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: EV Loan Interest (80EEB) -->
-          <div class="section section--savings old-regime-only" id="section-80eeb">
-            <div class="section-header" onclick="toggleSection('80eeb')">
-              <span class="section-icon">⚡</span>
-              <h2 class="section-title">Electric Vehicle Loan Interest (Section 80EEB)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-80eeb">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-80eeb">
-              <div class="form-group">
-                <label for="section80EEBInterest">EV Loan Interest Paid (₹/year)</label>
-                <input type="number" id="section80EEBInterest" placeholder="e.g., 50000" value="0" min="0" />
-                <p class="help-text">
-                  <span class="info-icon">i</span>
-                  Max deduction ₹1,50,000. For loans sanctioned between Apr 1, 2019 - Mar 31, 2023.
-                </p>
-              </div>
-              <p class="law-ref">Section 80EEB: Deduction for interest on electric vehicle loan.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Donations (80G / 80GGC) -->
-          <div class="section section--savings" id="section-donations">
-            <div class="section-header" onclick="toggleSection('donations')">
-              <span class="section-icon">🎁</span>
-              <h2 class="section-title">Charitable & Political Donations (Section 80G/80GGC)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-donations">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-donations">
-              <p class="help-text" style="margin-bottom: 16px">
-                <span class="info-icon">i</span>
-                Section 80G (charitable donations) and Section 80GGC (political party donations) are available in Old Regime only.
-              </p>
-
-              <div class="dynamic-entries" id="donationsList">
-                <!-- Dynamic donation entries will be added here -->
-              </div>
-
-              <button class="add-entry-btn" onclick="addDonation()">➕ Add Donation</button>
-
-              <div style="margin-top: 12px; padding: 8px; background: var(--color-warning-bg); border-radius: 4px">
-                <p class="help-text" style="margin: 0; color: var(--color-warning)">⚠️ Cash donations > ₹2,000 are NOT eligible. Use cheque/online for full benefit.</p>
-              </div>
-
-              <p class="law-ref">Section 80G: Charitable donations (50%/100%). Section 80GGC: Political parties (100%). Both Old Regime only.</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Capital Gains -->
-          <div class="section section--other" id="section-capitalgains">
+          <!-- SECTION: Capital Gains (Investment Income) -->
+          <div class="section" id="section-capitalgains">
             <div class="section-header" onclick="toggleSection('capitalgains')">
               <span class="section-icon">📊</span>
               <h2 class="section-title">Investment Profits - Capital Gains (Stocks, Property, Crypto)</h2>
@@ -595,7 +295,7 @@
           </div>
 
           <!-- SECTION: Other Income -->
-          <div class="section section--other" id="section-otherincome">
+          <div class="section" id="section-otherincome">
             <div class="section-header" onclick="toggleSection('otherincome')">
               <span class="section-icon">💰</span>
               <h2 class="section-title">Additional Income Sources (Interest, Rent, Gifts)</h2>
@@ -669,58 +369,115 @@
             </div>
           </div>
 
-          <!-- SECTION: Disabilities (Special Cases) -->
-          <div class="section section--other old-regime-only" id="section-disabilities">
-            <div class="section-header" onclick="toggleSection('disabilities')">
-              <span class="section-icon">♿</span>
-              <h2 class="section-title">Disability & Medical Expense Deductions (Section 80U/80DD/80DDB)</h2>
-              <span class="section-badge section-badge--old-only">Old Regime</span>
-              <button class="section-toggle collapsed" id="toggle-disabilities">▼</button>
+          <!-- SECTION: Tax Reliefs (Section 89) -->
+          <div class="section" id="section-reliefs">
+            <div class="section-header" onclick="toggleSection('reliefs')">
+              <span class="section-icon">🛡️</span>
+              <h2 class="section-title">Tax Relief for Arrears/Advance Salary (Section 89)</h2>
+              <span class="section-badge section-badge--common">Both Regimes</span>
+              <button class="section-toggle collapsed" id="toggle-reliefs">▼</button>
             </div>
-            <div class="section-content hidden" id="content-disabilities">
+            <div class="section-content hidden" id="content-reliefs">
+              <div class="form-group">
+                <label for="section89Relief">Relief u/s 89 (Arrears/Advance) (₹)</label>
+                <input type="number" id="section89Relief" placeholder="Calculated relief amount" value="0" min="0" />
+                <p class="help-text">
+                  <span class="info-icon">i</span>
+                  Received 'Arrears' (past dues) or 'Advance Salary' in a lump sum? This relief ensures you aren't taxed at a higher rate just because you got it all at once. It spreads the tax liability to the correct years.
+                  <br><small><strong>Mandatory: File Form 10E online to claim.</strong> Reduces final tax liability directly.</small>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION: Retirement Benefits (Neutral - Income Exemption) -->
+
+
+          <!-- SECTION: 80C Investments (Old Regime Only) -->
+          <div class="section section--wealth-building old-regime-only" id="section-80c">
+            <div class="section-header" onclick="toggleSection('80c')">
+              <span class="section-icon">📈</span>
+              <h2 class="section-title">Tax-Saving Investments (Section 80C - ₹1.5L Limit)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-80c">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-80c">
+              <p class="help-text" style="margin-bottom: 16px">
+                <span class="info-icon">i</span>
+                All 80C investments share a combined ₹1,50,000 limit. EPF contribution (above) counts here too.
+              </p>
+
+              <div class="dynamic-entries" id="investments80c">
+                <!-- Dynamic investment entries will be added here -->
+              </div>
+
+              <button class="add-entry-btn" onclick="addInvestment80C()">➕ Add Investment</button>
+
+              <div id="total80c" style="margin-top: 16px; padding: 12px; background: var(--color-bg-tertiary); border-radius: 4px">
+                <strong>Total 80C:</strong>
+                <span id="total80cAmount">₹0</span>
+                / ₹1,50,000
+                <div id="remaining80c" class="help-text" style="margin-top: 4px">Remaining limit: ₹1,50,000</div>
+              </div>
+              
+              <!-- EPF Display (Auto-calculated) -->
+              <div id="epf80cRow" style="margin-top: 12px; padding: 12px; border: 1px dashed var(--color-border); border-radius: 4px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 13px;">Employee Provident Fund (EPF)</strong>
+                        <div style="font-size: 11px; color: var(--color-text-secondary);">From Salary (Auto-added to 80C)</div>
+                    </div>
+                    <span id="epf80cAmount" style="font-weight: 600; color: var(--color-primary);">₹0</span>
+                </div>
+              </div>
+
+              <p class="law-ref">Section 80C: PPF, ELSS, LIC, NSC, SCSS, Tuition Fees, Home Loan Principal, Sukanya Samriddhi, Tax-Saver FD, etc.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: NPS -->
+          <div class="section section--wealth-building" id="section-nps">
+            <div class="section-header" onclick="toggleSection('nps')">
+              <span class="section-icon">🏦</span>
+              <h2 class="section-title">National Pension System (NPS)</h2>
+              <span class="section-badge section-badge--common">Both Regimes</span>
+              <button class="section-toggle collapsed" id="toggle-nps">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-nps">
               <div class="form-row">
-                <div class="form-group">
-                  <label for="selfDisabilityLevel">Your Disability (if certified)</label>
-                  <select id="selfDisabilityLevel">
-                    <option value="">No disability</option>
-                    <option value="40to79">40-79% disability (₹75,000)</option>
-                    <option value="80plus">80%+ severe disability (₹1,25,000)</option>
-                  </select>
+                <div class="form-group old-regime-only">
+                  <label for="npsContribution">Your NPS Tier-1 Contribution (₹)</label>
+                  <input type="number" id="npsContribution" placeholder="e.g., 50000" value="0" min="0" />
                   <p class="help-text">
                     <span class="info-icon">i</span>
-                    Section 80U: Flat deduction for certified disability.
+                    80CCD(1): Within 80C pool, max 10% of salary. Old Regime only.
                   </p>
                 </div>
-                <div class="form-group">
-                  <label for="dependentDisabilityLevel">Dependent with Disability</label>
-                  <select id="dependentDisabilityLevel">
-                    <option value="">No disabled dependent</option>
-                    <option value="40to79">40-79% disability (₹75,000)</option>
-                    <option value="80plus">80%+ severe disability (₹1,25,000)</option>
-                  </select>
+                <div class="form-group old-regime-only">
+                  <label for="npsExtraContribution">Additional NPS - 80CCD(1B) (₹)</label>
+                  <input type="number" id="npsExtraContribution" placeholder="e.g., 50000" value="0" min="0" max="50000" />
                   <p class="help-text">
                     <span class="info-icon">i</span>
-                    Section 80DD: For spouse, children, parents, siblings with disability.
+                    EXTRA ₹50,000 over 80C limit! Only for NPS Tier-1. Old Regime only.
                   </p>
                 </div>
               </div>
               <div class="form-group">
-                <label for="specifiedDiseaseExpenses">Treatment for Specified Diseases (₹)</label>
-                <input type="number" id="specifiedDiseaseExpenses" placeholder="e.g., 40000" value="0" min="0" />
+                <label for="employerNPSContribution">Employer's NPS Contribution (₹)</label>
+                <input type="number" id="employerNPSContribution" placeholder="e.g., 84000" value="0" min="0" />
                 <p class="help-text">
                   <span class="info-icon">i</span>
-                  Section 80DDB: Cancer, AIDS, neurological diseases, renal failure. Max ₹40K (<60) or ₹1L (60+).
+                  80CCD(2): Available in BOTH regimes! Limit: 14% of Basic+DA (New Regime for all), 10%/14% (Old Regime private/govt).
                 </p>
               </div>
-              <p class="law-ref">Sections 80U, 80DD: Flat deductions. Section 80DDB: Medical treatment for specified diseases.</p>
+              <p class="law-ref">Section 80CCD: NPS has 3 buckets - (1) Your contribution (80C pool), (1B) Extra ₹50K, (2) Employer (14% of Basic+DA in New, 10-14% in Old).</p>
             </div>
           </div>
 
-          
-          <!-- SECTION: Agniveer Corpus (80CCH) -->
-          <div class="section section--savings" id="section-agniveer">
+          <!-- SECTION: Agniveer Corpus (GREEN - Wealth Building) -->
+          <div class="section section--wealth-building" id="section-agniveer">
             <div class="section-header" onclick="toggleSection('agniveer')">
-              <span class="section-icon">🎖️</span>
+              <span class="section-icon">⚔️</span>
               <h2 class="section-title">Agniveer Corpus Fund (Section 80CCH)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-agniveer">▼</button>
@@ -737,10 +494,10 @@
             </div>
           </div>
 
-          <!-- SECTION: Retirement Benefits (Gratuity, Leave Encashment) -->
-          <div class="section section--savings" id="section-retirement">
+          <!-- SECTION: Retirement Benefits (GREEN - Wealth Building) -->
+          <div class="section section--wealth-building" id="section-retirement">
             <div class="section-header" onclick="toggleSection('retirement')">
-              <span class="section-icon">🎖️</span>
+              <span class="section-icon">👴🏻</span>
               <h2 class="section-title">Retirement Benefits - Gratuity, Leave Encashment (Section 10)</h2>
               <span class="section-badge section-badge--common">Both Regimes</span>
               <button class="section-toggle collapsed" id="toggle-retirement">▼</button>
@@ -813,8 +570,286 @@
             </div>
           </div>
 
-          <!-- SECTION: Scientific Research Donations (80GGA) -->
-          <div class="section section--savings old-regime-only" id="section-80gga">
+          <!-- SECTION: HRA / Rent (BLUE - Expense Based) -->
+          <div class="section section--expense-based old-regime-only" id="section-hra">
+            <div class="section-header" onclick="toggleSection('hra')">
+              <span class="section-icon">🏠</span>
+              <h2 class="section-title">HRA Exemption (Rent Paid)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-hra">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-hra">
+              <p class="help-text" style="margin-bottom: 16px;">
+                <span class="info-icon">💡</span>
+                If you receive HRA from your employer and pay rent, you can claim exemption under Section 10(13A).
+              </p>
+              
+              <div id="rentSection" style="width: 100%;">
+                  <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span>Rent Paid (for HRA Exemption)</span>
+                      <button class="add-entry-btn--small" onclick="addRentPayment()">➕ Add Rent Period</button>
+                  </label>
+                  <p class="help-text" style="margin-bottom: 12px;">
+                      <span class="info-icon">i</span>
+                      Add separate entries if rent changed or you moved cities.
+                  </p>
+                  
+                  <div id="rentPaymentsContainer" style="width: 100%;">
+                      <!-- Dynamic Rent Payments -->
+                  </div>
+                  <button class="add-entry-btn" onclick="addRentPayment()" style="margin-top: 8px;">➕ Add Rent Period</button>
+              </div>
+              
+              <p class="law-ref">Section 10(13A): HRA is exempt based on Actual HRA, 50%/40% of Basic (metro/non-metro), or Rent minus 10% of Basic - whichever is lowest.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: Health Insurance (80D) -->
+          <div class="section section--expense-based old-regime-only" id="section-80d">
+            <div class="section-header" onclick="toggleSection('80d')">
+              <span class="section-icon">🏥</span>
+              <h2 class="section-title">Health Insurance Premiums (Section 80D)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-80d">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-80d">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="healthInsuranceSelf">Self + Family Premium (₹/year)</label>
+                  <input type="number" id="healthInsuranceSelf" placeholder="e.g., 25000" value="0" min="0" />
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Premium for self, spouse, dependent children. Max ₹25K (<60) or ₹50K (senior).
+                  </p>
+                </div>
+                <div class="form-group">
+                  <label for="healthInsuranceParents">Parents' Premium (₹/year)</label>
+                  <input type="number" id="healthInsuranceParents" placeholder="e.g., 50000" value="0" min="0" />
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Premium for parents. Max ₹25K (parents <60) or ₹50K (parents 60+).
+                  </p>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="parentsAgeCategory">Parents' Age</label>
+                  <select id="parentsAgeCategory">
+                    <option value="below60">Parents below 60 years</option>
+                    <option value="60to80">Parents 60+ years (Senior)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="preventiveCheckup">Preventive Health Checkup (₹)</label>
+                  <input type="number" id="preventiveCheckup" placeholder="e.g., 5000" value="0" min="0" max="5000" />
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Up to ₹5,000 (included in above limits, not extra). Cash payment allowed.
+                  </p>
+                </div>
+              </div>
+              <p class="law-ref">Section 80D: Max ₹25K self (<60), ₹50K (senior). Same for parents. Total up to ₹1L if all are seniors.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: Home Loan -->
+          <div class="section section--expense-based old-regime-only" id="section-homeloan">
+            <div class="section-header" onclick="toggleSection('homeloan')">
+              <span class="section-icon">🏡</span>
+              <h2 class="section-title">Home Loan Deductions (Section 24b)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-homeloan">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-homeloan">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="homeLoanInterest">Home Loan Interest Paid (₹/year)</label>
+                  <input type="number" id="homeLoanInterest" placeholder="e.g., 200000" value="0" min="0" />
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Section 24(b): Max ₹2L for self-occupied property. Unlimited for let-out.
+                  </p>
+                </div>
+                <div class="form-group">
+                  <label for="homeLoanPrincipal">Home Loan Principal Paid (₹/year)</label>
+                  <input type="number" id="homeLoanPrincipal" placeholder="e.g., 100000" value="0" min="0" />
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Part of 80C pool. Principal repayment is deductible under 80C.
+                  </p>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="isPropertyLetOut" />
+                  <span>Property is rented out (Let-Out property)</span>
+                </label>
+                <p class="help-text">
+                  <span class="info-icon">i</span>
+                  If let-out, there's NO limit on interest deduction, but rental income is taxable.
+                </p>
+              </div>
+              <p class="law-ref">Section 24(b) for Interest, Section 80C for Principal. New Regime: NO home loan interest deduction.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: Education Loan (80E) -->
+          <!-- SECTION: Legacy Home Loan (80EE / 80EEA) -->
+          <div class="section section--expense-based old-regime-only" id="section-legacy-home">
+            <div class="section-header" onclick="toggleSection('legacy-home')">
+              <span class="section-icon">🏠</span>
+              <h2 class="section-title">First-Time Home Buyer Benefits (Section 80EE/80EEA)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-legacy-home">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-legacy-home">
+              
+              <!-- 80EE -->
+              <div class="form-group" style="margin-bottom: 16px;">
+                 <label for="section80EEInterest">Interest u/s 80EE (FY 16-17 Loans)</label>
+                 <input type="number" id="section80EEInterest" placeholder="Max ₹50,000" value="0" min="0" />
+                 <p class="help-text">
+                   <span class="info-icon">i</span>
+                   Extra deduction up to ₹50,000 over 24(b). Loans sanctioned Apr 1, 2016 - Mar 31, 2017.
+                 </p>
+              </div>
+
+              <!-- 80EEA -->
+              <div class="form-group">
+                 <label for="section80EEAInterest">Interest u/s 80EEA (FY 19-22 Loans)</label>
+                 <input type="number" id="section80EEAInterest" placeholder="Max ₹1,50,000" value="0" min="0" />
+                 <p class="help-text">
+                   <span class="info-icon">i</span>
+                   Extra deduction up to ₹1.5L over 24(b). Loans sanctioned Apr 1, 2019 - Mar 31, 2022. Property value < ₹45L.
+                 </p>
+              </div>
+              
+              <p class="law-ref">Note: You cannot claim both 80EE and 80EEA. Claim only if 24(b) limit is exhausted.</p>
+            </div>
+          </div>
+
+          <div class="section section--expense-based old-regime-only" id="section-80e">
+            <div class="section-header" onclick="toggleSection('80e')">
+              <span class="section-icon">🎓</span>
+              <h2 class="section-title">Education Loan Interest (Section 80E)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-80e">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-80e">
+              <div class="form-group">
+                <label for="educationLoanInterest">Education Loan Interest Paid (₹/year)</label>
+                <input type="number" id="educationLoanInterest" placeholder="e.g., 100000" value="0" min="0" />
+                <p class="help-text">
+                  <span class="info-icon">i</span>
+                  UNLIMITED deduction! Available for 8 years from first repayment. For self, spouse, or children.
+                </p>
+              </div>
+              <p class="law-ref">Section 80E: Interest on loan for higher education. Must be from recognized financial institution.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: EV Loan Interest (80EEB) -->
+          <div class="section section--expense-based old-regime-only" id="section-80eeb">
+            <div class="section-header" onclick="toggleSection('80eeb')">
+              <span class="section-icon">⚡</span>
+              <h2 class="section-title">Electric Vehicle Loan Interest (Section 80EEB)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-80eeb">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-80eeb">
+              <div class="form-group">
+                <label for="section80EEBInterest">EV Loan Interest Paid (₹/year)</label>
+                <input type="number" id="section80EEBInterest" placeholder="e.g., 50000" value="0" min="0" />
+                <p class="help-text">
+                  <span class="info-icon">i</span>
+                  Max deduction ₹1,50,000. For loans sanctioned between Apr 1, 2019 - Mar 31, 2023.
+                </p>
+              </div>
+              <p class="law-ref">Section 80EEB: Deduction for interest on electric vehicle loan.</p>
+            </div>
+          </div>
+
+          <!-- SECTION: Disabilities (BLUE - Expense Based) -->
+          <div class="section section--expense-based old-regime-only" id="section-disabilities">
+            <div class="section-header" onclick="toggleSection('disabilities')">
+              <span class="section-icon">♿</span>
+              <h2 class="section-title">Disability & Medical Expense Deductions (Section 80U/80DD/80DDB)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-disabilities">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-disabilities">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="selfDisabilityLevel">Your Disability (if certified)</label>
+                  <select id="selfDisabilityLevel">
+                    <option value="">No disability</option>
+                    <option value="40to79">40-79% disability (₹75,000)</option>
+                    <option value="80plus">80%+ severe disability (₹1,25,000)</option>
+                  </select>
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Section 80U: Flat deduction for certified disability.
+                  </p>
+                </div>
+                <div class="form-group">
+                  <label for="dependentDisabilityLevel">Dependent with Disability</label>
+                  <select id="dependentDisabilityLevel">
+                    <option value="">No disabled dependent</option>
+                    <option value="40to79">40-79% disability (₹75,000)</option>
+                    <option value="80plus">80%+ severe disability (₹1,25,000)</option>
+                  </select>
+                  <p class="help-text">
+                    <span class="info-icon">i</span>
+                    Section 80DD: For spouse, children, parents, siblings with disability.
+                  </p>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="specifiedDiseaseExpenses">Treatment for Specified Diseases (₹)</label>
+                <input type="number" id="specifiedDiseaseExpenses" placeholder="e.g., 40000" value="0" min="0" />
+                <p class="help-text">
+                  <span class="info-icon">i</span>
+                  Section 80DDB: Cancer, AIDS, neurological diseases, renal failure. Max ₹40K (<60) or ₹1L (60+).
+                </p>
+              </div>
+              <p class="law-ref">Sections 80U, 80DD: Flat deductions. Section 80DDB: Medical treatment for specified diseases.</p>
+            </div>
+          </div>
+
+
+
+          <!-- SECTION: Donations (ORANGE - Pure Donation) -->
+          <div class="section section--donation old-regime-only" id="section-donations">
+            <div class="section-header" onclick="toggleSection('donations')">
+              <span class="section-icon">🎁</span>
+              <h2 class="section-title">Charitable & Political Donations (Section 80G/80GGC)</h2>
+              <span class="section-badge section-badge--old-only">Old Regime</span>
+              <button class="section-toggle collapsed" id="toggle-donations">▼</button>
+            </div>
+            <div class="section-content hidden" id="content-donations">
+              <p class="help-text" style="margin-bottom: 16px">
+                <span class="info-icon">i</span>
+                Section 80G (charitable donations) and Section 80GGC (political party donations) are available in Old Regime only.
+              </p>
+
+              <div class="dynamic-entries" id="donationsList">
+                <!-- Dynamic donation entries will be added here -->
+              </div>
+
+              <button class="add-entry-btn" onclick="addDonation()">➕ Add Donation</button>
+
+              <div style="margin-top: 12px; padding: 8px; background: var(--color-warning-bg); border-radius: 4px">
+                <p class="help-text" style="margin: 0; color: var(--color-warning)">⚠️ Cash donations > ₹2,000 are NOT eligible. Use cheque/online for full benefit.</p>
+              </div>
+
+              <p class="law-ref">Section 80G: Charitable donations (50%/100%). Section 80GGC: Political parties (100%). Both Old Regime only.</p>
+            </div>
+          </div>
+
+
+
+          <!-- SECTION: Scientific Research Donations (ORANGE - Donation) -->
+          <div class="section section--donation old-regime-only" id="section-80gga">
             <div class="section-header" onclick="toggleSection('80gga')">
               <span class="section-icon">🔬</span>
               <h2 class="section-title">Scientific Research Contributions (Section 80GGA)</h2>
@@ -855,27 +890,6 @@
             </div>
           </div>
 
-          <!-- SECTION: Tax Reliefs (Section 89) -->
-          <div class="section section--other" id="section-reliefs">
-            <div class="section-header" onclick="toggleSection('reliefs')">
-              <span class="section-icon">🛡️</span>
-              <h2 class="section-title">Tax Relief for Arrears/Advance Salary (Section 89)</h2>
-              <span class="section-badge section-badge--common">Both Regimes</span>
-              <button class="section-toggle collapsed" id="toggle-reliefs">▼</button>
-            </div>
-            <div class="section-content hidden" id="content-reliefs">
-              <div class="form-group">
-                <label for="section89Relief">Relief u/s 89 (Arrears/Advance) (₹)</label>
-                <input type="number" id="section89Relief" placeholder="Calculated relief amount" value="0" min="0" />
-                <p class="help-text">
-                  <span class="info-icon">i</span>
-                  Enter the relief amount calculated as per Form 10E. Mandatory to file Form 10E online.
-                  <br><small>Reduces final tax liability directly.</small>
-                </p>
-              </div>
-            </div>
-          </div>
-          
           <!-- CALCULATE BUTTON -->
           <div class="calculate-section">
             <button class="calculate-btn" id="calculateBtn" onclick="calculateTax()" disabled title="Add salary details above to enable calculation">
@@ -919,8 +933,9 @@
     <footer class="app-footer">
       <p>
         Built with ❤️ by 
-        <a href="https://github.com/deshwalmahesh" target="_blank" rel="noopener">Mahesh Deshwal</a> | 
-        <a href="https://www.linkedin.com/in/deshwalmahesh/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.linkedin.com/in/deshwalmahesh/" target="_blank" rel="noopener">Mahesh Deshwal | </a>
+        <a href="https://github.com/deshwalmahesh" target="_blank" rel="noopener">Code</a> | 
+        
       </p>
     </footer>
 
