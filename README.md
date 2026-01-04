@@ -6,6 +6,11 @@
 
 A privacy-focused web application that helps Indian taxpayers calculate and optimize their income tax. It compares the **Old Regime vs. New Regime** side-by-side to find your best savings. It has almost **ALL** the features which can save some tax or decrease the tax liability. It gives you a breakdown of what saved to tax, how and what else can you use to save more tax.
 
+<p align="center">
+  <img src="assets/image1.png" alt="Tax Calculator Screenshot 1" width="90%">
+  <img src="assets/image2.png" alt="Tax Calculator Screenshot 2" width="90%">
+</p>
+
 ## 🚀 What does it do?
 
 - **Instant Calculation**: Enter your salary details manually.
@@ -19,12 +24,12 @@ Tax planning is confusing. Existing tools are often either too simple (ignoring 
 
 ## 🤖 How AI Parsing Works (Optional)
 
-We use **Google Gemini 1.5 Flash**, a powerful multimodal AI model.
+We use **Google Gemini 3 Flash**, a powerful multimodal AI model.
 
 1.  **Read**: The app reads your uploaded PDF/Image in the browser.
 2.  **Extract**: It sends a _stateless_ request to the Gemini API, asking it to identify specific tax fields (Basic Salary, HRA, 80C, etc.).
 3.  **Fill**: The AI returns a structured JSON object, which the app automatically maps to the input fields.
-    _Note: This feature requires a free API key from Google AI Studio._
+    _Note: This feature requires a **FREE** API key from Google AI Studio. You must bring your own key to use the AI features._
 
 ## 🛠️ How to Run
 
