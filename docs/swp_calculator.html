@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SWP Calculator - Systematic Withdrawal Plan</title>
+    <style>
+      :root {
+        --bg-primary: #0f0f1a;
+        --bg-secondary: #1a1a2e;
+        --bg-card: #16213e;
+        --accent-primary: #e94560;
+        --accent-secondary: #0f3460;
+        --text-primary: #eaeaea;
+        --text-secondary: #a0a0a0;
+        --success: #00d26a;
+        --danger: #ff4757;
+        --warning: #ffa502;
+        --border-radius: 12px;
+        --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        min-height: 100vh;
+        color: var(--text-primary);
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-secondary) 100%);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(90deg, var(--accent-primary), #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+      }
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: 400px 1fr;
+        gap: 30px;
+      }
+
+      @media (max-width: 1000px) {
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .input-panel {
+        background: var(--bg-card);
+        padding: 30px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+      }
+
+      .input-panel h2 {
+        color: var(--accent-primary);
+        margin-bottom: 25px;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .input-group label .hint {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        opacity: 0.7;
+        margin-top: 2px;
+      }
+
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .input-wrapper .prefix {
+        position: absolute;
+        left: 15px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        z-index: 1;
+      }
+
+      .input-wrapper .suffix {
+        position: absolute;
+        right: 15px;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      input[type="number"],
+      input[type="range"] {
+        width: 100%;
+        padding: 14px 15px;
+        background: var(--bg-secondary);
+        border: 2px solid transparent;
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.2);
+      }
+
+      input[type="number"].has-prefix {
+        padding-left: 35px;
+      }
+
+      input[type="number"].has-suffix {
+        padding-right: 45px;
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(to right, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        cursor: pointer;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+      }
+
+      .slider-value {
+        min-width: 60px;
+        text-align: right;
+        font-weight: 600;
+        color: var(--accent-primary);
+      }
+
+      .calculate-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--accent-primary) 0%, #ff6b6b 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      }
+
+      .calculate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+      }
+
+      .results-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+
+      .summary-card {
+        background: var(--bg-card);
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--accent-primary);
+      }
+
+      .summary-card.success {
+        border-left-color: var(--success);
+      }
+
+      .summary-card.danger {
+        border-left-color: var(--danger);
+      }
+
+      .summary-card h3 {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .summary-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .summary-card .value.success {
+        color: var(--success);
+      }
+
+      .summary-card .value.danger {
+        color: var(--danger);
+      }
+
+      .summary-card .subtext {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .chart-container {
+        background: var(--bg-card);
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+      }
+
+      .chart-container h3 {
+        color: var(--accent-primary);
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      th {
+        background: var(--accent-secondary);
+        color: var(--text-primary);
+        padding: 15px 12px;
+        text-align: right;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      th:first-child {
+        text-align: center;
+        border-radius: 8px 0 0 0;
+      }
+
+      th:last-child {
+        border-radius: 0 8px 0 0;
+      }
+
+      td {
+        padding: 12px;
+        text-align: right;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        white-space: nowrap;
+      }
+
+      td:first-child {
+        text-align: center;
+        font-weight: 600;
+        color: var(--accent-primary);
+      }
+
+      tr:hover td {
+        background: rgba(233, 69, 96, 0.1);
+      }
+
+      tr.depleted td {
+        color: var(--danger);
+        opacity: 0.6;
+      }
+
+      .amount-remaining {
+        color: var(--success);
+      }
+
+      .amount-spent {
+        color: var(--warning);
+      }
+
+      .amount-tax {
+        color: var(--danger);
+      }
+
+      .info-box {
+        background: rgba(233, 69, 96, 0.1);
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .info-box strong {
+        color: var(--accent-primary);
+      }
+
+      .visual-chart {
+        height: 300px;
+        margin-bottom: 20px;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        padding: 20px 0;
+        border-bottom: 2px solid var(--accent-secondary);
+      }
+
+      .bar-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        max-width: 40px;
+      }
+
+      .bar {
+        width: 100%;
+        background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        border-radius: 4px 4px 0 0;
+        min-height: 2px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .bar:hover {
+        opacity: 0.8;
+      }
+
+      .bar-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        transform: rotate(-45deg);
+        white-space: nowrap;
+        margin-top: 10px;
+      }
+
+      .legend {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+      }
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent-secondary);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-primary);
+      }
+
+      .formatted-number {
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>₹ SWP Calculator</h1>
+        <p>Systematic Withdrawal Plan with FIFO Taxation & Step-up Spending</p>
+      </header>
+
+      <div class="main-grid">
+        <div class="input-panel">
+          <h2>📊 Investment Parameters</h2>
+
+          <div class="input-group">
+            <label>
+              Initial Corpus
+              <span class="hint">Amount you're starting with (₹1,000 - ₹1,00,00,00,000)</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="prefix">₹</span>
+              <input type="number" id="initialCorpus" class="has-prefix" value="10000000" min="1000" max="1000000000" step="1000" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Expected Annual Return (CAGR)
+              <span class="hint">Yearly compound growth on your corpus</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="interestRate" min="0" max="20" step="0.5" value="8" />
+              <span class="slider-value" id="interestRateValue">8%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Inflation Rate (YoY)
+              <span class="hint">Compounded yearly - affects real value display</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="inflationRate" min="0" max="15" step="0.5" value="6" />
+              <span class="slider-value" id="inflationRateValue">6%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Annual Spending (Year 1)
+              <span class="hint">Net amount you need to spend yearly</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="prefix">₹</span>
+              <input type="number" id="yearlySpend" class="has-prefix" value="600000" min="1" max="1000000000" step="1000" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Step-up Rate (Lifestyle Growth)
+              <span class="hint">Linear increase on initial spend each year (not compounded)</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="stepUpRate" min="0" max="20" step="0.5" value="5" />
+              <span class="slider-value" id="stepUpRateValue">5%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Capital Gains Tax Rate
+              <span class="hint">Tax on gains only (FIFO basis) - LTCG typically 12.5%</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="taxRate" min="0" max="30" step="0.5" value="15" />
+              <span class="slider-value" id="taxRateValue">15%</span>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>
+              Target Duration (Years)
+              <span class="hint">How long you want the money to last</span>
+            </label>
+            <div class="slider-container">
+              <input type="range" id="targetYears" min="1" max="50" step="1" value="20" />
+              <span class="slider-value" id="targetYearsValue">20 yrs</span>
+            </div>
+          </div>
+
+          <button class="calculate-btn" onclick="calculate()">Calculate SWP</button>
+
+          <div class="info-box">
+            <strong>FIFO Taxation:</strong>
+            When withdrawing, we sell oldest units first. Only the
+            <em>gain portion</em>
+            (current value - cost basis) is taxed. The formula used:
+            <br />
+            <code>Withdrawal = Spending ÷ (1 - TaxRate × GainRatio)</code>
+          </div>
+        </div>
+
+        <div class="results-panel" id="resultsPanel">
+          <div class="summary-cards">
+            <div class="summary-card" id="durationCard">
+              <h3>Money Will Last</h3>
+              <div class="value" id="durationValue">--</div>
+              <div class="subtext" id="durationSubtext">Calculate to see results</div>
+            </div>
+            <div class="summary-card" id="requiredCorpusCard">
+              <h3>Required Corpus (for target)</h3>
+              <div class="value" id="requiredCorpusValue">--</div>
+              <div class="subtext" id="requiredCorpusSubtext">To last exactly target years</div>
+            </div>
+            <div class="summary-card">
+              <h3>Total Spending</h3>
+              <div class="value amount-spent" id="totalSpentValue">--</div>
+              <div class="subtext" id="totalSpentSubtext">Net amount spent over duration</div>
+            </div>
+            <div class="summary-card">
+              <h3>Total Tax Paid</h3>
+              <div class="value amount-tax" id="totalTaxValue">--</div>
+              <div class="subtext" id="totalTaxSubtext">Capital gains tax on withdrawals</div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <h3>📊 Year-over-Year Chart</h3>
+            <canvas id="yoyChart" width="800" height="400" style="width: 100%; max-height: 400px;"></canvas>
+            <div class="legend" id="chartLegend">
+              <div class="legend-item">
+                <div class="legend-color" style="background: #00d26a;"></div>
+                <span>Total Remaining</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #3498db;"></div>
+                <span>Money Withdrawn</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #ffa502;"></div>
+                <span>Money Spent</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color" style="background: #ff4757;"></div>
+                <span>Taxes Given</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container">
+            <h3>📋 Year-by-Year Breakdown</h3>
+            <div class="table-wrapper">
+              <table id="breakdownTable">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Start Balance</th>
+                    <th>Nominal Spending</th>
+                    <th>Real Spending (Today's ₹)</th>
+                    <th>Gross Withdrawal</th>
+                    <th>Tax Paid</th>
+                    <th>Corpus Growth</th>
+                    <th>End Balance</th>
+                    <th>Real Corpus (Today's ₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Format number to Indian currency format
+      function formatCurrency(num) {
+        if (num === null || num === undefined || isNaN(num)) return "₹0";
+
+        const absNum = Math.abs(num);
+        let formatted;
+
+        if (absNum >= 10000000) {
+          formatted = (absNum / 10000000).toFixed(2) + " Cr";
+        } else if (absNum >= 100000) {
+          formatted = (absNum / 100000).toFixed(2) + " L";
+        } else if (absNum >= 1000) {
+          formatted = absNum.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+        } else {
+          formatted = absNum.toFixed(2);
+        }
+
+        return (num < 0 ? "-₹" : "₹") + formatted;
+      }
+
+      // Format years and months
+      function formatDuration(years) {
+        const wholeYears = Math.floor(years);
+        const months = Math.round((years - wholeYears) * 12);
+
+        if (months === 0) {
+          return `${wholeYears} Years`;
+        } else if (months === 12) {
+          return `${wholeYears + 1} Years`;
+        }
+        return `${wholeYears} Years ${months} Months`;
+      }
+
+      // Update slider displays
+      document.querySelectorAll('input[type="range"]').forEach((slider) => {
+        slider.addEventListener("input", function () {
+          const valueSpan = document.getElementById(this.id + "Value");
+          if (this.id === "targetYears") {
+            valueSpan.textContent = this.value + " yrs";
+          } else {
+            valueSpan.textContent = this.value + "%";
+          }
+        });
+      });
+
+      // Calculate required withdrawal to get net spending amount
+      function calculateWithdrawal(spendingNeeded, taxRate, corpusValue, costBasisRemaining) {
+        // Gain ratio = (corpusValue - costBasisRemaining) / corpusValue
+        // When we withdraw W, gain portion = W * gainRatio
+        // Tax = W * gainRatio * taxRate
+        // Net = W - Tax = W * (1 - gainRatio * taxRate)
+        // So W = spendingNeeded / (1 - gainRatio * taxRate)
+
+        if (corpusValue <= 0) return { withdrawal: 0, tax: 0 };
+
+        const gainRatio = Math.max(0, (corpusValue - costBasisRemaining) / corpusValue);
+        const effectiveMultiplier = 1 - gainRatio * taxRate;
+
+        if (effectiveMultiplier <= 0) {
+          // Edge case: tax rate so high on gains that we can't even withdraw
+          return { withdrawal: spendingNeeded / (1 - taxRate), tax: (spendingNeeded * taxRate) / (1 - taxRate) };
+        }
+
+        const withdrawal = spendingNeeded / effectiveMultiplier;
+        const gainInWithdrawal = withdrawal * gainRatio;
+        const tax = gainInWithdrawal * taxRate;
+
+        return { withdrawal, tax, gainRatio };
+      }
+
+      // Update cost basis after withdrawal (proportional reduction)
+      function updateCostBasis(corpusValue, costBasisRemaining, withdrawalAmount) {
+        if (corpusValue <= 0) return 0;
+
+        const proportionWithdrawn = withdrawalAmount / corpusValue;
+        const costBasisWithdrawn = costBasisRemaining * proportionWithdrawn;
+
+        return Math.max(0, costBasisRemaining - costBasisWithdrawn);
+      }
+
+      // Main calculation
+      function calculate() {
+        const initialCorpus = parseFloat(document.getElementById("initialCorpus").value) || 0;
+        const interestRate = parseFloat(document.getElementById("interestRate").value) / 100;
+        const inflationRate = parseFloat(document.getElementById("inflationRate").value) / 100;
+        const initialYearlySpend = parseFloat(document.getElementById("yearlySpend").value) || 0;
+        const stepUpRate = parseFloat(document.getElementById("stepUpRate").value) / 100;
+        const taxRate = parseFloat(document.getElementById("taxRate").value) / 100;
+        const targetYears = parseInt(document.getElementById("targetYears").value) || 20;
+
+        // Validation
+        if (initialCorpus < 1000 || initialCorpus > 1000000000) {
+          alert("Initial corpus must be between ₹1,000 and ₹100 Crore");
+          return;
+        }
+
+        if (initialYearlySpend < 1 || initialYearlySpend > initialCorpus) {
+          alert("Annual spending must be between ₹1 and your initial corpus");
+          return;
+        }
+
+        // Simulation
+        let corpus = initialCorpus;
+        let costBasis = initialCorpus; // Initially, all is cost basis (principal)
+        let yearData = [];
+        let totalSpent = 0;
+        let totalTax = 0;
+        let actualDuration = 0;
+
+        for (let year = 1; year <= Math.max(targetYears, 100); year++) {
+          if (corpus <= 0) break;
+
+          const startBalance = corpus;
+          const startCostBasis = costBasis;
+
+          // Calculate spending for this year:
+          // 1. Inflation (compounded): Maintain TODAY's purchasing power
+          // 2. Step-up (linear): Lifestyle growth on initial amount
+          // Formula: Initial × (1 + inflation)^(N-1) × (1 + stepUp × (N-1))
+          const inflationMultiplier = Math.pow(1 + inflationRate, year - 1);
+          const stepUpMultiplier = 1 + stepUpRate * (year - 1);
+          const spendingNeed = initialYearlySpend * inflationMultiplier * stepUpMultiplier;
+          
+          // Real spending value in today's terms (should equal initial + linear step-up only)
+          const realSpendingValue = initialYearlySpend * stepUpMultiplier;
+
+          // Calculate withdrawal needed considering FIFO taxation
+          const { withdrawal, tax, gainRatio } = calculateWithdrawal(spendingNeed, taxRate, corpus, costBasis);
+
+          // Check if we have enough
+          if (withdrawal > corpus) {
+            // Partial year calculation
+            const availableForSpending = corpus * (1 - gainRatio * taxRate);
+            const partialSpend = availableForSpending;
+            const partialTax = corpus - availableForSpending;
+            const fractionOfYear = availableForSpending / spendingNeed;
+
+            actualDuration = year - 1 + fractionOfYear;
+            totalSpent += partialSpend;
+            totalTax += partialTax;
+
+            yearData.push({
+              year,
+              startBalance,
+              spendingNeed,
+              withdrawal: corpus,
+              tax: partialTax,
+              spent: partialSpend,
+              growth: 0,
+              endBalance: 0,
+              costBasisLeft: 0,
+              realValue: 0,
+              partial: true,
+              partialMonths: Math.round(fractionOfYear * 12),
+            });
+
+            corpus = 0;
+            costBasis = 0;
+            break;
+          }
+
+          // Withdraw and update cost basis
+          corpus -= withdrawal;
+          costBasis = updateCostBasis(startBalance, costBasis, withdrawal);
+
+          // Apply growth to remaining corpus
+          const growth = corpus * interestRate;
+          corpus += growth;
+
+          // Cost basis doesn't grow (it's the original investment amount)
+          // But corpus grows, so gain ratio increases over time
+
+          // Calculate inflation-adjusted (real) value of corpus
+          const corpusInflationMultiplier = Math.pow(1 + inflationRate, year);
+          const realCorpusValue = corpus / corpusInflationMultiplier;
+
+          totalSpent += spendingNeed;
+          totalTax += tax;
+          actualDuration = year;
+
+          yearData.push({
+            year,
+            startBalance,
+            spendingNeed, // Nominal spending (actual rupees needed)
+            realSpendingValue, // Real spending in today's terms (initial + step-up only)
+            withdrawal,
+            tax,
+            spent: spendingNeed,
+            growth,
+            endBalance: corpus,
+            costBasisLeft: costBasis,
+            realCorpusValue,
+            partial: false,
+          });
+
+          // Stop if we've gone past target and corpus is depleted
+          if (year >= targetYears && corpus <= 0) break;
+          if (year >= 100) break; // Safety limit
+        }
+
+        // Calculate required corpus for target duration (binary search)
+        const requiredCorpus = calculateRequiredCorpus(targetYears, interestRate, inflationRate, initialYearlySpend, stepUpRate, taxRate);
+
+        // Update UI
+        updateResults(actualDuration, targetYears, requiredCorpus, totalSpent, totalTax, yearData);
+      }
+
+      // Binary search to find required corpus
+      function calculateRequiredCorpus(targetYears, interestRate, inflationRate, initialYearlySpend, stepUpRate, taxRate) {
+        let low = initialYearlySpend;
+        let high = initialYearlySpend * 1000;
+        let iterations = 0;
+        const maxIterations = 100;
+
+        while (high - low > 1000 && iterations < maxIterations) {
+          const mid = (low + high) / 2;
+          const duration = simulateDuration(mid, interestRate, inflationRate, initialYearlySpend, stepUpRate, taxRate);
+
+          if (duration < targetYears) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+          iterations++;
+        }
+
+        return Math.ceil(high / 1000) * 1000; // Round up to nearest 1000
+      }
+
+      // Quick simulation to get duration
+      function simulateDuration(corpus, interestRate, inflationRate, initialYearlySpend, stepUpRate, taxRate) {
+        let costBasis = corpus;
+        let duration = 0;
+
+        for (let year = 1; year <= 100; year++) {
+          if (corpus <= 0) break;
+
+          // Include inflation in spending calculation
+          const inflationMult = Math.pow(1 + inflationRate, year - 1);
+          const stepUpMult = 1 + stepUpRate * (year - 1);
+          const spendingNeed = initialYearlySpend * inflationMult * stepUpMult;
+          
+          const gainRatio = Math.max(0, (corpus - costBasis) / corpus);
+          const effectiveMultiplier = 1 - gainRatio * taxRate;
+          const withdrawal = spendingNeed / Math.max(0.01, effectiveMultiplier);
+
+          if (withdrawal > corpus) {
+            const availableForSpending = corpus * (1 - gainRatio * taxRate);
+            duration = year - 1 + availableForSpending / spendingNeed;
+            break;
+          }
+
+          const proportionWithdrawn = withdrawal / corpus;
+          costBasis = Math.max(0, costBasis * (1 - proportionWithdrawn));
+          corpus = (corpus - withdrawal) * (1 + interestRate);
+          duration = year;
+        }
+
+        return duration;
+      }
+
+      // Update the UI with results
+      function updateResults(actualDuration, targetYears, requiredCorpus, totalSpent, totalTax, yearData) {
+        const durationCard = document.getElementById("durationCard");
+        const durationValue = document.getElementById("durationValue");
+        const durationSubtext = document.getElementById("durationSubtext");
+
+        const isSuccess = actualDuration >= targetYears;
+
+        durationCard.className = `summary-card ${isSuccess ? "success" : "danger"}`;
+        durationValue.className = `value ${isSuccess ? "success" : "danger"}`;
+        durationValue.textContent = formatDuration(actualDuration);
+        durationSubtext.textContent = isSuccess ? `✓ Exceeds target by ${formatDuration(actualDuration - targetYears)}` : `✗ Falls short by ${formatDuration(targetYears - actualDuration)}`;
+
+        document.getElementById("requiredCorpusValue").textContent = formatCurrency(requiredCorpus);
+        document.getElementById("requiredCorpusSubtext").textContent = `To last exactly ${targetYears} years`;
+
+        document.getElementById("totalSpentValue").textContent = formatCurrency(totalSpent);
+        document.getElementById("totalSpentSubtext").textContent = `Over ${formatDuration(actualDuration)}`;
+
+        document.getElementById("totalTaxValue").textContent = formatCurrency(totalTax);
+        const effectiveTaxRate = totalSpent > 0 ? ((totalTax / (totalSpent + totalTax)) * 100).toFixed(1) : 0;
+        document.getElementById("totalTaxSubtext").textContent = `Effective rate: ${effectiveTaxRate}% of withdrawals`;
+
+        // Render visual chart
+        renderVisualChart(yearData);
+
+        // Render table
+        renderTable(yearData, targetYears);
+      }
+
+      function renderVisualChart(yearData) {
+        const canvas = document.getElementById("yoyChart");
+        const ctx = canvas.getContext("2d");
+        
+        // Set canvas resolution for crisp rendering
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const width = rect.width;
+        const height = rect.height;
+        const padding = { top: 30, right: 20, bottom: 50, left: 80 };
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+        
+        if (yearData.length === 0) {
+          ctx.clearRect(0, 0, width, height);
+          return;
+        }
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+        
+        // Prepare data series
+        const series = {
+          remaining: { data: yearData.map(d => d.endBalance), color: '#00d26a', label: 'Remaining' },
+          withdrawn: { data: yearData.map(d => d.withdrawal), color: '#3498db', label: 'Withdrawn' },
+          spent: { data: yearData.map(d => d.spendingNeed), color: '#ffa502', label: 'Spent' },
+          taxes: { data: yearData.map(d => d.tax), color: '#ff4757', label: 'Taxes' }
+        };
+        
+        // Find max value for Y axis scaling (use remaining balance as primary scale)
+        const allValues = [...series.remaining.data, ...series.withdrawn.data];
+        const maxValue = Math.max(...allValues, 1);
+        
+        // Draw grid and axes
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // Horizontal grid lines
+        const yGridLines = 5;
+        for (let i = 0; i <= yGridLines; i++) {
+          const y = padding.top + (chartHeight / yGridLines) * i;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(width - padding.right, y);
+          ctx.stroke();
+          
+          // Y-axis labels
+          const value = maxValue - (maxValue / yGridLines) * i;
+          ctx.fillStyle = '#a0a0a0';
+          ctx.font = '11px Segoe UI';
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(formatCurrency(value), padding.left - 10, y);
+        }
+        
+        // X-axis labels (years)
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const xStep = Math.max(1, Math.ceil(yearData.length / 15)); // Show max 15 labels
+        yearData.forEach((d, i) => {
+          if (i % xStep === 0 || i === yearData.length - 1) {
+            const x = padding.left + (i / Math.max(1, yearData.length - 1)) * chartWidth;
+            ctx.fillStyle = '#a0a0a0';
+            ctx.fillText(`Y${d.year}`, x, height - padding.bottom + 10);
+          }
+        });
+        
+        // Draw lines for each series
+        function drawLine(data, color, lineWidth = 2.5) {
+          if (data.length === 0) return;
+          
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = lineWidth;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          
+          data.forEach((val, i) => {
+            const x = padding.left + (i / Math.max(1, data.length - 1)) * chartWidth;
+            const y = padding.top + chartHeight - (val / maxValue) * chartHeight;
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          
+          ctx.stroke();
+        }
+        
+        // Draw area fill for remaining balance
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(0, 210, 106, 0.15)';
+        series.remaining.data.forEach((val, i) => {
+          const x = padding.left + (i / Math.max(1, series.remaining.data.length - 1)) * chartWidth;
+          const y = padding.top + chartHeight - (val / maxValue) * chartHeight;
+          if (i === 0) {
+            ctx.moveTo(x, padding.top + chartHeight);
+            ctx.lineTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw all lines (remaining last so it's on top)
+        drawLine(series.taxes.data, series.taxes.color, 2);
+        drawLine(series.spent.data, series.spent.color, 2);
+        drawLine(series.withdrawn.data, series.withdrawn.color, 2);
+        drawLine(series.remaining.data, series.remaining.color, 3);
+        
+        // Draw data points
+        function drawPoints(data, color) {
+          const pointStep = Math.max(1, Math.ceil(data.length / 20));
+          data.forEach((val, i) => {
+            if (i % pointStep === 0 || i === data.length - 1) {
+              const x = padding.left + (i / Math.max(1, data.length - 1)) * chartWidth;
+              const y = padding.top + chartHeight - (val / maxValue) * chartHeight;
+              
+              ctx.beginPath();
+              ctx.arc(x, y, 4, 0, Math.PI * 2);
+              ctx.fillStyle = color;
+              ctx.fill();
+              ctx.strokeStyle = '#16213e';
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+          });
+        }
+        
+        drawPoints(series.remaining.data, series.remaining.color);
+        
+        // Chart title
+        ctx.fillStyle = '#eaeaea';
+        ctx.font = 'bold 14px Segoe UI';
+        ctx.textAlign = 'left';
+        ctx.fillText('Withdrawn / Spent / Taxes / Remaining over Years', padding.left, 15);
+      }
+
+      function renderTable(yearData, targetYears) {
+        const tableBody = document.getElementById("tableBody");
+        tableBody.innerHTML = "";
+
+        yearData.forEach((data) => {
+          const row = document.createElement("tr");
+          row.className = data.endBalance <= 0 ? "depleted" : "";
+
+          const yearText = data.partial ? `${data.year} (${data.partialMonths} mo)` : data.year;
+
+          row.innerHTML = `
+                    <td>${yearText}</td>
+                    <td class="formatted-number">${formatCurrency(data.startBalance)}</td>
+                    <td class="formatted-number amount-spent">${formatCurrency(data.spendingNeed)}</td>
+                    <td class="formatted-number" style="color: #9b59b6">${formatCurrency(data.realSpendingValue || data.spendingNeed)}</td>
+                    <td class="formatted-number">${formatCurrency(data.withdrawal)}</td>
+                    <td class="formatted-number amount-tax">${formatCurrency(data.tax)}</td>
+                    <td class="formatted-number" style="color: var(--success)">${formatCurrency(data.growth)}</td>
+                    <td class="formatted-number amount-remaining">${formatCurrency(data.endBalance)}</td>
+                    <td class="formatted-number" style="color: var(--text-secondary)">${formatCurrency(data.realCorpusValue || 0)}</td>
+                `;
+
+          tableBody.appendChild(row);
+        });
+      }
+
+      // Initial calculation on load
+      document.addEventListener("DOMContentLoaded", function () {
+        calculate();
+      });
+    </script>
+  </body>
+</html>
